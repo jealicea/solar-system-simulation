@@ -6,8 +6,10 @@ import earthTexture from './assets/textures/Earth.jpg';
 import marsTexture from './assets/textures/Mars.jpg';
 import jupiterTexture from './assets/textures/Jupiter.jpg';
 import saturnTexture from './assets/textures/Saturn.jpg';
+import saturnRingTexture from './assets/textures/SaturnsRing.png';
 import uranusTexture from './assets/textures/Uranus.jpg';
 import neptuneTexture from './assets/textures/Neptune.jpg';
+import moonTexture from './assets/textures/Moon.jpg';
 
 const planetsData = [
     {
@@ -36,28 +38,32 @@ const planetsData = [
         size: 1,
         color: 0x2233ff,
         texture: earthTexture,
-        position: { x: 12, y: 0, z: 0 }
+        position: { x: 12, y: 0, z: 0 },
+        // moonPosition: { x: 13.5, y: 0, z: 0 }
     },
     {
         name: 'Mars',
         size: 0.53,
         color: 0xff3300,
         texture: marsTexture,
-        position: { x: 18, y: 0, z: 0 }
+        position: { x: 18, y: 0, z: 0 },
+        // moonPosition: { x: 19.5, y: 0, z: 0 }
     },
     {
         name: 'Jupiter',
         size: 2.8,
         color: 0xffaa33,
         texture: jupiterTexture,
-        position: { x: 35, y: 0, z: 0 }
+        position: { x: 35, y: 0, z: 0 },
+        // moonPosition: { x: 37, y: 0, z: 0 }
     },
     {
         name: 'Saturn',
         size: 2.4,
         color: 0xffddaa,
         texture: saturnTexture,
-        position: { x: 55, y: 0, z: 0 } 
+        position: { x: 55, y: 0, z: 0 },
+        // moonPosition: { x: 57, y: 0, z: 0 }
     },
     {
         name: 'Uranus',
@@ -72,7 +78,13 @@ const planetsData = [
         color: 0x0066cc,
         texture: neptuneTexture,
         position: { x: 95, y: 0, z: 0 }
-    }
+    }, 
+    // {
+    //     name: 'Moon',
+    //     size: 0.27,
+    //     color: 0x888888,
+    //     texture: moonTexture,
+    // }
 ];
 
 export class PlanetSystem {
@@ -102,6 +114,12 @@ export class PlanetSystem {
             // Create the planet mesh and add it to its own group
             const mesh = this.createPlanetMesh(planet);
             planetGroup.add(mesh);
+            
+            // Add Saturn's rings if this is Saturn
+            if (planet.name === 'Saturn') {
+                const rings = this.createSaturnRings(planet);
+                planetGroup.add(rings);
+            }
             
             // Add the planet group to the main group
             group.add(planetGroup);
@@ -142,6 +160,42 @@ export class PlanetSystem {
         mesh.name = planet.name;
         
         return mesh;
+    }
+
+    createSaturnRings(planet) {
+        // Create ring geometry - a flat ring shape
+        const innerRadius = planet.size * 1.2;  // Slightly larger than Saturn
+        const outerRadius = planet.size * 2.2;  // Outer edge of the rings
+        const thetaSegments = 64;  // Number of segments for smooth circle
+        
+        const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, thetaSegments);
+        
+        // Load the ring texture
+        const ringTexture = this.textureLoader.load(saturnRingTexture);
+        
+        // Create ring material
+        const ringMaterial = new THREE.MeshPhongMaterial({
+            map: ringTexture,
+            side: THREE.DoubleSide,  // Visible from both sides
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        // Create the ring mesh
+        const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+        
+        // Position the rings at the same location as Saturn
+        ringMesh.position.set(planet.position.x, planet.position.y, planet.position.z);
+        
+        // Rotate the rings to be horizontal (Saturn's rings are roughly in the equatorial plane)
+        ringMesh.rotation.x = Math.PI / 2;
+        
+        // Give the rings a slight tilt for more realism
+        ringMesh.rotation.z = 0.1;
+        
+        ringMesh.name = 'SaturnRings';
+        
+        return ringMesh;
     }
 
     createOrbitalLine(planet) {
