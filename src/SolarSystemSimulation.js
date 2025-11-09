@@ -119,7 +119,9 @@ function animate() {
 
     controls.update();
 
+    // Update planet system animation (rotation and orbit)
     if (planetSystem) {
+        planetSystem.update(delta);
         planetSystem.updateLabels(camera);
     }
 
@@ -234,6 +236,7 @@ function focusCameraOnPlanet(planetName) {
         return;
     }
     
+    // Get the current world position of the planet mesh
     const planetPosition = new THREE.Vector3();
     planet.getWorldPosition(planetPosition);
     

@@ -16,21 +16,33 @@ const planetsData = [
         size: 3.5,
         color: 0xffdd00,
         texture: sunTexture,
-        position: { x: 0, y: 0, z: 0 }
+        position: { x: 0, y: 0, z: 0 },
+        orbitRadius: 0,
+        orbitSpeed: 0,
+        rotationSpeed: 0.02,
+        axialTilt: 7.25 * Math.PI / 180
     },
     {
         name: 'Mercury',
         size: 0.38,
         color: 0x909090,
         texture: mercuryTexture,
-        position: { x: 5, y: 0, z: 0 }
+        position: { x: 5, y: 0, z: 0 },
+        orbitRadius: 5,
+        orbitSpeed: 0.04,
+        rotationSpeed: 0.005,
+        axialTilt: 0.034 * Math.PI / 180
     },
     {
         name: 'Venus',
         size: 0.95,
         color: 0xeccc9a,
         texture: venusTexture,
-        position: { x: 8, y: 0, z: 0 }
+        position: { x: 8, y: 0, z: 0 },
+        orbitRadius: 8,
+        orbitSpeed: 0.035,
+        rotationSpeed: -0.002,
+        axialTilt: 177.3 * Math.PI / 180
     },
     {
         name: 'Earth',
@@ -38,7 +50,10 @@ const planetsData = [
         color: 0x2233ff,
         texture: earthTexture,
         position: { x: 12, y: 0, z: 0 },
-        // moonPosition: { x: 13.5, y: 0, z: 0 }
+        orbitRadius: 12,
+        orbitSpeed: 0.03,
+        rotationSpeed: 0.01,
+        axialTilt: 23.5 * Math.PI / 180
     },
     {
         name: 'Mars',
@@ -46,7 +61,10 @@ const planetsData = [
         color: 0xff3300,
         texture: marsTexture,
         position: { x: 18, y: 0, z: 0 },
-        // moonPosition: { x: 19.5, y: 0, z: 0 }
+        orbitRadius: 18,
+        orbitSpeed: 0.025,
+        rotationSpeed: 0.0097,
+        axialTilt: 25.2 * Math.PI / 180
     },
     {
         name: 'Jupiter',
@@ -54,7 +72,10 @@ const planetsData = [
         color: 0xffaa33,
         texture: jupiterTexture,
         position: { x: 35, y: 0, z: 0 },
-        // moonPosition: { x: 37, y: 0, z: 0 }
+        orbitRadius: 35,
+        orbitSpeed: 0.013,
+        rotationSpeed: 0.024,
+        axialTilt: 3.1 * Math.PI / 180
     },
     {
         name: 'Saturn',
@@ -62,28 +83,33 @@ const planetsData = [
         color: 0xffddaa,
         texture: saturnTexture,
         position: { x: 55, y: 0, z: 0 },
-        // moonPosition: { x: 57, y: 0, z: 0 }
+        orbitRadius: 55,
+        orbitSpeed: 0.009,
+        rotationSpeed: 0.022,
+        axialTilt: 26.7 * Math.PI / 180
     },
     {
         name: 'Uranus',
         size: 1.6,
         color: 0x66ccff,
         texture: uranusTexture,
-        position: { x: 75, y: 0, z: 0 }
+        position: { x: 75, y: 0, z: 0 },
+        orbitRadius: 75,
+        orbitSpeed: 0.006,
+        rotationSpeed: 0.014,
+        axialTilt: 97.8 * Math.PI / 180
     },
     {
         name: 'Neptune',
         size: 1.5,
         color: 0x0066cc,
         texture: neptuneTexture,
-        position: { x: 95, y: 0, z: 0 }
-    }, 
-    // {
-    //     name: 'Moon',
-    //     size: 0.27,
-    //     color: 0x888888,
-    //     texture: moonTexture,
-    // }
+        position: { x: 95, y: 0, z: 0 },
+        orbitRadius: 95,
+        orbitSpeed: 0.004,
+        rotationSpeed: 0.016,
+        axialTilt: 28.3 * Math.PI / 180
+    }
 ];
 
 export class PlanetSystem {
@@ -94,10 +120,21 @@ export class PlanetSystem {
             size: data.size,
             color: data.color,
             texture: data.texture,
-            position: data.position
+            position: data.position,
+            orbitRadius: data.orbitRadius,
+            orbitSpeed: data.orbitSpeed,
+            rotationSpeed: data.rotationSpeed,
+            axialTilt: data.axialTilt
         }));
-        this.planetLabels = new Map(); // Store sprite labels for each planet
-        this.activeLabelName = null; // Track currently active label
+        this.planetLabels = new Map();
+        this.activeLabelName = null;
+        this.planetMeshes = new Map();
+        this.orbitAngles = new Map();
+        
+        // Initialize orbit angles
+        this.planets.forEach(planet => {
+            this.orbitAngles.set(planet.name, Math.random() * Math.PI * 2);
+        });
     }
 
     addPlanet(planet) {
@@ -165,6 +202,8 @@ export class PlanetSystem {
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(planet.position.x, planet.position.y, planet.position.z);
         mesh.name = planet.name;
+        mesh.rotation.z = planet.axialTilt;
+        this.planetMeshes.set(planet.name, mesh);
         
         return mesh;
     }
@@ -174,8 +213,6 @@ export class PlanetSystem {
         const geometry = new THREE.SphereGeometry(atmosphereRadius, 32, 32);
         
         const atmosphereColor = this.getAtmosphereColor(planet.name);
-        
-        // Special handling for the Sun's atmosphere to make it more prominent
         let opacity = 0.2;
         let material;
         
@@ -239,7 +276,7 @@ export class PlanetSystem {
         const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
         ringMesh.position.set(planet.position.x, planet.position.y, planet.position.z);
         ringMesh.rotation.x = Math.PI / 2;
-        ringMesh.rotation.z = 0.1;
+        ringMesh.rotation.z = planet.axialTilt;
         
         ringMesh.name = 'SaturnRings';
         
@@ -279,15 +316,12 @@ export class PlanetSystem {
     }
 
     createPlanetLabel(planet) {
-        // Create a canvas to draw the text
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         
-        // Set canvas size (larger for bigger text)
         canvas.width = 512;
         canvas.height = 128;
         
-        // Set font and style (much larger font)
         context.font = 'bold 48px Arial';
         context.fillStyle = 'white';
         context.strokeStyle = 'black';
@@ -295,30 +329,25 @@ export class PlanetSystem {
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         
-        // Add text with outline for better visibility
         const text = planet.name;
         context.strokeText(text, canvas.width / 2, canvas.height / 2);
         context.fillText(text, canvas.width / 2, canvas.height / 2);
         
-        // Create texture from canvas
         const texture = new THREE.CanvasTexture(canvas);
         texture.needsUpdate = true;
-        
-        // Create sprite material
+
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
             opacity: 0
         });
         
-        // Create sprite
         const sprite = new THREE.Sprite(spriteMaterial);
         
-        // Scale the sprite appropriately (larger scale for bigger text)
-        const scale = Math.max(planet.size * 1.5, 2.0); // Increased minimum scale and multiplier
+
+        const scale = Math.max(planet.size * 1.5, 2.0);
         sprite.scale.set(scale * 3, scale * 0.75, 1);
-        
-        // Position the label above the planet (closer to the planet)
+
         sprite.position.set(
             planet.position.x,
             planet.position.y + planet.size + 1,
@@ -331,10 +360,8 @@ export class PlanetSystem {
     }
 
     showLabel(planetName) {
-        // Hide any currently active label
         this.hideAllLabels();
         
-        // Show the requested label
         const label = this.planetLabels.get(planetName);
         if (label) {
             label.material.opacity = 1.0;
@@ -368,22 +395,62 @@ export class PlanetSystem {
     }
 
     updateLabels(camera) {
-        // Update label positions and ensure they always face the camera
         this.planetLabels.forEach((label, planetName) => {
             const planet = this.planets.find(p => p.name === planetName);
             if (planet && label.material.opacity > 0) {
-                // Update position to stay above the planet (closer to the planet)
-                label.position.set(
-                    planet.position.x,
-                    planet.position.y + planet.size + 1,
-                    planet.position.z
-                );
-                
-                // Sprites automatically face the camera, but we can adjust scale based on distance
-                const distance = camera.position.distanceTo(label.position);
-                const scale = Math.max(planet.size * 1.5, 2.0); // Increased scale
-                const scaleFactor = Math.min(distance / 15, 2.0); // Larger scale factor
-                label.scale.set(scale * 3 * scaleFactor, scale * 0.75 * scaleFactor, 1);
+                const planetMesh = this.planetMeshes.get(planetName);
+                if (planetMesh) {
+                    label.position.set(
+                        planetMesh.position.x,
+                        planetMesh.position.y + planet.size + 1,
+                        planetMesh.position.z
+                    );
+                    
+                    const distance = camera.position.distanceTo(label.position);
+                    const scale = Math.max(planet.size * 1.5, 2.0);
+                    const scaleFactor = Math.min(distance / 15, 2.0);
+                    label.scale.set(scale * 3 * scaleFactor, scale * 0.75 * scaleFactor, 1);
+                }
+            }
+        });
+    }
+
+    update(deltaTime) {
+        this.planets.forEach(planet => {
+            const planetMesh = this.planetMeshes.get(planet.name);
+            if (!planetMesh) return;
+
+            planetMesh.rotation.y += planet.rotationSpeed * deltaTime;
+
+            if (planet.name !== 'Sun' && planet.orbitRadius > 0) {
+                let currentAngle = this.orbitAngles.get(planet.name);
+                currentAngle += planet.orbitSpeed * deltaTime;
+                this.orbitAngles.set(planet.name, currentAngle);
+
+                const newX = Math.cos(currentAngle) * planet.orbitRadius;
+                const newZ = Math.sin(currentAngle) * planet.orbitRadius;
+
+                planetMesh.position.set(newX, 0, newZ);
+
+                const planetGroup = planetMesh.parent;
+                if (planetGroup) {
+                    const atmosphere = planetGroup.getObjectByName(`${planet.name}Atmosphere`);
+                    if (atmosphere) {
+                        atmosphere.position.set(newX, 0, newZ);
+                    }
+
+                    if (planet.name === 'Saturn') {
+                        const rings = planetGroup.getObjectByName('SaturnRings');
+                        if (rings) {
+                            rings.position.set(newX, 0, newZ);
+                            rings.rotation.y += 0.001 * deltaTime;
+                        }
+                    }
+
+
+                    planet.position.x = newX;
+                    planet.position.z = newZ;
+                }
             }
         });
     }
