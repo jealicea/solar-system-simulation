@@ -6,8 +6,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Starfield } from './Starfield.js';
 import { PlanetSystem } from './PlanetSystem.js';
+import { AsteroidBelt } from './AsteroidBelt.js';
 
-let scene, camera, renderer, clock, controls, planetSystem, planetsGroup;
+let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup;
 let composer, bloomPass;
 let raycaster, mouse;
 
@@ -77,6 +78,11 @@ function init() {
     planetsGroup = planetSystem.create();
     scene.add(planetsGroup);
 
+    // Create and add asteroid belt
+    asteroidBelt = new AsteroidBelt();
+    asteroidBeltGroup = asteroidBelt.create();
+    scene.add(asteroidBeltGroup);
+
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -90,6 +96,9 @@ function init() {
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
     setupMouseControls();
+    
+    // Set up reset button
+    setupResetButton();
 
     // Clock setup
     clock = new THREE.Clock();
@@ -112,6 +121,11 @@ function animate() {
 
     if (planetSystem) {
         planetSystem.updateLabels(camera);
+    }
+
+    // Update asteroid belt animation
+    if (asteroidBelt) {
+        asteroidBelt.update(delta);
     }
 
     // Rotate ambient light indicator if it exists
@@ -272,4 +286,17 @@ function animateCameraToTarget(cameraPosition, lookAtPosition) {
     }
     
     requestAnimationFrame(animateCamera);
+}
+
+function resetCamera() {
+    const originalPosition = new THREE.Vector3(0, 10, 30);
+    const originalTarget = new THREE.Vector3(0, 0, 0);
+    animateCameraToTarget(originalPosition, originalTarget);
+}
+
+function setupResetButton() {
+    const resetButton = document.getElementById('reset');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetCamera);
+    }
 }

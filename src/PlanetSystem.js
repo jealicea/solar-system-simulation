@@ -96,6 +96,8 @@ export class PlanetSystem {
             texture: data.texture,
             position: data.position
         }));
+        this.planetLabels = new Map(); // Store sprite labels for each planet
+        this.activeLabelName = null; // Track currently active label
     }
 
     addPlanet(planet) {
@@ -117,6 +119,11 @@ export class PlanetSystem {
             // Add atmosphere for all planets including the Sun
             const atmosphere = this.createPlanetAtmosphere(planet);
             planetGroup.add(atmosphere);
+            
+            // Create and add the label sprite for this planet
+            const label = this.createPlanetLabel(planet);
+            planetGroup.add(label);
+            this.planetLabels.set(planet.name, label);
             
             // Add Saturn's rings if this is Saturn
             if (planet.name === 'Saturn') {
@@ -269,5 +276,115 @@ export class PlanetSystem {
         orbitalLine.name = `${planet.name}Orbit`;
         
         return orbitalLine;
+    }
+
+    createPlanetLabel(planet) {
+        // Create a canvas to draw the text
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        // Set canvas size (larger for bigger text)
+        canvas.width = 512;
+        canvas.height = 128;
+        
+        // Set font and style (much larger font)
+        context.font = 'bold 48px Arial';
+        context.fillStyle = 'white';
+        context.strokeStyle = 'black';
+        context.lineWidth = 6;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        // Add text with outline for better visibility
+        const text = planet.name;
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
+        // Create sprite material
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 0
+        });
+        
+        // Create sprite
+        const sprite = new THREE.Sprite(spriteMaterial);
+        
+        // Scale the sprite appropriately (larger scale for bigger text)
+        const scale = Math.max(planet.size * 1.5, 2.0); // Increased minimum scale and multiplier
+        sprite.scale.set(scale * 3, scale * 0.75, 1);
+        
+        // Position the label above the planet (closer to the planet)
+        sprite.position.set(
+            planet.position.x,
+            planet.position.y + planet.size + 1,
+            planet.position.z
+        );
+        
+        sprite.name = `${planet.name}Label`;
+        
+        return sprite;
+    }
+
+    showLabel(planetName) {
+        // Hide any currently active label
+        this.hideAllLabels();
+        
+        // Show the requested label
+        const label = this.planetLabels.get(planetName);
+        if (label) {
+            label.material.opacity = 1.0;
+            this.activeLabelName = planetName;
+        }
+    }
+
+    hideLabel(planetName) {
+        const label = this.planetLabels.get(planetName);
+        if (label) {
+            label.material.opacity = 0;
+            if (this.activeLabelName === planetName) {
+                this.activeLabelName = null;
+            }
+        }
+    }
+
+    hideAllLabels() {
+        this.planetLabels.forEach((label) => {
+            label.material.opacity = 0;
+        });
+        this.activeLabelName = null;
+    }
+
+    toggleLabel(planetName) {
+        if (this.activeLabelName === planetName) {
+            this.hideLabel(planetName);
+        } else {
+            this.showLabel(planetName);
+        }
+    }
+
+    updateLabels(camera) {
+        // Update label positions and ensure they always face the camera
+        this.planetLabels.forEach((label, planetName) => {
+            const planet = this.planets.find(p => p.name === planetName);
+            if (planet && label.material.opacity > 0) {
+                // Update position to stay above the planet (closer to the planet)
+                label.position.set(
+                    planet.position.x,
+                    planet.position.y + planet.size + 1,
+                    planet.position.z
+                );
+                
+                // Sprites automatically face the camera, but we can adjust scale based on distance
+                const distance = camera.position.distanceTo(label.position);
+                const scale = Math.max(planet.size * 1.5, 2.0); // Increased scale
+                const scaleFactor = Math.min(distance / 15, 2.0); // Larger scale factor
+                label.scale.set(scale * 3 * scaleFactor, scale * 0.75 * scaleFactor, 1);
+            }
+        });
     }
 }
