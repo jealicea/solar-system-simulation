@@ -1,10 +1,14 @@
 // src/SolarSystemSimulation.js
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Starfield } from './Starfield.js';
 import { PlanetSystem } from './PlanetSystem.js';
 
 let scene, camera, renderer, clock, controls, planetSystem, planetsGroup;
+let composer, bloomPass;
 let raycaster, mouse;
 
 const planetKeyMap = {
@@ -40,6 +44,11 @@ function init() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+    renderer.toneMappingExposure = 2.0;
+
+    // Post-processing setup
+    setupPostProcessing();
 
     // Add some basic lighting
     const ambientLight = new THREE.AmbientLight(0x404040, 0.1);
@@ -92,6 +101,7 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function animate() {
@@ -106,7 +116,25 @@ function animate() {
         ambientIndicator.rotation.x += delta * 0.3;
         ambientIndicator.rotation.z += delta * 0.2;
     }
-    renderer.render(scene, camera);
+    composer.render();
+}
+
+function setupPostProcessing() {
+    // Create the effect composer
+    composer = new EffectComposer(renderer);
+
+    // Add the render pass - this renders the scene normally
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    // Add bloom pass for glowing effects
+    bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.5,  // strength
+        0.4,  // radius
+        0.85  // threshold
+    );
+    composer.addPass(bloomPass);
 }
 
 init();

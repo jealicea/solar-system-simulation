@@ -127,7 +127,7 @@ export class PlanetSystem {
             // Add the planet group to the main group
             group.add(planetGroup);
             
-            // Create orbital lines for planets (not for the Sun)
+            // Create orbital lines for planets
             if (planet.name !== 'Sun') {
                 const orbitalLine = this.createOrbitalLine(planet);
                 group.add(orbitalLine);
@@ -142,19 +142,16 @@ export class PlanetSystem {
         
         let material;
         if (planet.name === 'Sun') {
-            // Special material for the sun - make it emissive and self-illuminating
             const sunTextureMap = this.textureLoader.load(planet.texture);
             material = new THREE.MeshBasicMaterial({ 
                 map: sunTextureMap,
                 emissive: new THREE.Color(0xffaa00),
-                emissiveIntensity: 0.3
+                emissiveIntensity: 1.0
             });
         } else if (planet.texture) {
-            // Create material with texture for other planets
             const planetTexture = this.textureLoader.load(planet.texture);
             material = new THREE.MeshPhongMaterial({ map: planetTexture });
         } else {
-            // Fallback to color material
             material = new THREE.MeshPhongMaterial({ color: planet.color });
         }
         
@@ -170,12 +167,29 @@ export class PlanetSystem {
         const geometry = new THREE.SphereGeometry(atmosphereRadius, 32, 32);
         
         const atmosphereColor = this.getAtmosphereColor(planet.name);
-        const material = new THREE.MeshPhongMaterial({
-            color: atmosphereColor,
-            transparent: true,
-            opacity: 0.2,
-            side: THREE.BackSide,
-        });
+        
+        // Special handling for the Sun's atmosphere to make it more prominent
+        let opacity = 0.2;
+        let material;
+        
+        if (planet.name === 'Sun') {
+            opacity = 0.4;
+            material = new THREE.MeshBasicMaterial({
+                color: atmosphereColor,
+                transparent: true,
+                opacity: opacity,
+                side: THREE.BackSide,
+                emissive: new THREE.Color(atmosphereColor),
+                emissiveIntensity: 0.3
+            });
+        } else {
+            material = new THREE.MeshPhongMaterial({
+                color: atmosphereColor,
+                transparent: true,
+                opacity: opacity,
+                side: THREE.BackSide,
+            });
+        }
         
         const atmosphereMesh = new THREE.Mesh(geometry, material);
         atmosphereMesh.position.set(planet.position.x, planet.position.y, planet.position.z);
@@ -245,7 +259,6 @@ export class PlanetSystem {
         
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         
-        // Create a white material for the orbital line
         const material = new THREE.LineBasicMaterial({ 
             color: 0xffffff,
             opacity: 0.3,
