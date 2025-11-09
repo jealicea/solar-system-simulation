@@ -9,7 +9,6 @@ import saturnTexture from './assets/textures/Saturn.jpg';
 import saturnRingTexture from './assets/textures/SaturnsRing.png';
 import uranusTexture from './assets/textures/Uranus.jpg';
 import neptuneTexture from './assets/textures/Neptune.jpg';
-import moonTexture from './assets/textures/Moon.jpg';
 
 const planetsData = [
     {
@@ -115,6 +114,10 @@ export class PlanetSystem {
             const mesh = this.createPlanetMesh(planet);
             planetGroup.add(mesh);
             
+            // Add atmosphere for all planets including the Sun
+            const atmosphere = this.createPlanetAtmosphere(planet);
+            planetGroup.add(atmosphere);
+            
             // Add Saturn's rings if this is Saturn
             if (planet.name === 'Saturn') {
                 const rings = this.createSaturnRings(planet);
@@ -162,35 +165,59 @@ export class PlanetSystem {
         return mesh;
     }
 
+    createPlanetAtmosphere(planet) {
+        const atmosphereRadius = planet.size * 1.1;
+        const geometry = new THREE.SphereGeometry(atmosphereRadius, 32, 32);
+        
+        const atmosphereColor = this.getAtmosphereColor(planet.name);
+        const material = new THREE.MeshPhongMaterial({
+            color: atmosphereColor,
+            transparent: true,
+            opacity: 0.2,
+            side: THREE.BackSide,
+        });
+        
+        const atmosphereMesh = new THREE.Mesh(geometry, material);
+        atmosphereMesh.position.set(planet.position.x, planet.position.y, planet.position.z);
+        atmosphereMesh.name = `${planet.name}Atmosphere`;
+        
+        return atmosphereMesh;
+    }
+
+    getAtmosphereColor(planetName) {
+        const atmosphereColors = {
+            'Sun': 0xff6600, 
+            'Mercury': 0x909090,  
+            'Venus': 0xffff99,     
+            'Earth': 0x87ceeb, 
+            'Mars': 0xff6b47,
+            'Jupiter': 0xffa500,
+            'Saturn': 0xffd700,
+            'Uranus': 0x40e0d0,
+            'Neptune': 0x4682b4
+        };
+        return atmosphereColors[planetName];
+    }
+
     createSaturnRings(planet) {
-        // Create ring geometry - a flat ring shape
-        const innerRadius = planet.size * 1.2;  // Slightly larger than Saturn
-        const outerRadius = planet.size * 2.2;  // Outer edge of the rings
-        const thetaSegments = 64;  // Number of segments for smooth circle
+        const innerRadius = planet.size * 1.2;
+        const outerRadius = planet.size * 2.2; 
+        const thetaSegments = 64; 
         
         const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, thetaSegments);
         
-        // Load the ring texture
         const ringTexture = this.textureLoader.load(saturnRingTexture);
         
-        // Create ring material
         const ringMaterial = new THREE.MeshPhongMaterial({
             map: ringTexture,
-            side: THREE.DoubleSide,  // Visible from both sides
+            side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.8
         });
-        
-        // Create the ring mesh
+    
         const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
-        
-        // Position the rings at the same location as Saturn
         ringMesh.position.set(planet.position.x, planet.position.y, planet.position.z);
-        
-        // Rotate the rings to be horizontal (Saturn's rings are roughly in the equatorial plane)
         ringMesh.rotation.x = Math.PI / 2;
-        
-        // Give the rings a slight tilt for more realism
         ringMesh.rotation.z = 0.1;
         
         ringMesh.name = 'SaturnRings';
@@ -199,15 +226,13 @@ export class PlanetSystem {
     }
 
     createOrbitalLine(planet) {
-        // Calculate the orbital radius based on the planet's distance from the Sun
         const orbitalRadius = Math.sqrt(
             planet.position.x * planet.position.x + 
             planet.position.z * planet.position.z
         );
         
-        // Create a circular geometry for the orbital path
         const points = [];
-        const segments = 128; // Number of segments for smooth circle
+        const segments = 128;
         
         for (let i = 0; i <= segments; i++) {
             const theta = (i / segments) * Math.PI * 2;
