@@ -110,6 +110,10 @@ function animate() {
 
     controls.update();
 
+    if (planetSystem) {
+        planetSystem.updateLabels(camera);
+    }
+
     // Rotate ambient light indicator if it exists
     const ambientIndicator = scene.getObjectByName('ambientLightIndicator');
     if (ambientIndicator) {
@@ -120,19 +124,17 @@ function animate() {
 }
 
 function setupPostProcessing() {
-    // Create the effect composer
     composer = new EffectComposer(renderer);
 
-    // Add the render pass - this renders the scene normally
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
 
-    // Add bloom pass for glowing effects
+
     bloomPass = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
-        1.5,  // strength
-        0.4,  // radius
-        0.85  // threshold
+        1.5,
+        0.4,
+        0.85 
     );
     composer.addPass(bloomPass);
 }
@@ -144,6 +146,7 @@ function setupKeyboardControls() {
         const key = event.key;
         if (planetKeyMap[key]) {
             const planetName = planetKeyMap[key];
+            planetSystem.toggleLabel(planetName);
             focusCameraOnPlanet(planetName);
         }
     });
@@ -167,7 +170,7 @@ function onMouseClick(event) {
 
     const clickableObjects = [];
     planetsGroup.traverse((child) => {
-        if (child.isMesh && child.name && !child.name.includes('Ring')) {
+        if (child.isMesh && child.name && !child.name.includes('Ring') && !child.name.includes('Atmosphere') && !child.name.includes('Label')) {
             clickableObjects.push(child);
         }
     });
@@ -177,6 +180,8 @@ function onMouseClick(event) {
     if (intersects.length > 0) {
         const clickedPlanet = intersects[0].object;
         const planetName = clickedPlanet.name;
+
+        planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
     }
 }
@@ -190,7 +195,7 @@ function onMouseMove(event) {
 
     const clickableObjects = [];
     planetsGroup.traverse((child) => {
-        if (child.isMesh && child.name && !child.name.includes('Ring')) {
+        if (child.isMesh && child.name && !child.name.includes('Ring') && !child.name.includes('Atmosphere') && !child.name.includes('Label')) {
             clickableObjects.push(child);
         }
     });
