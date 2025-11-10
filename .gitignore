@@ -2,4 +2,6 @@
 !/.gitignore
 !/.eslintrc.json
 Desktop.ini
-Icon[]
+Icon[
+]
+node_modules
