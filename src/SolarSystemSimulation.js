@@ -11,6 +11,7 @@ import { AsteroidBelt } from './AsteroidBelt.js';
 let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup;
 let composer, bloomPass;
 let raycaster, mouse;
+let speedMultiplier = 1.0;
 
 const planetKeyMap = {
     '1': 'Mercury',
@@ -99,6 +100,9 @@ function init() {
     
     // Set up reset button
     setupResetButton();
+    
+    // Set up speed control slider
+    setupSpeedControl();
 
     // Clock setup
     clock = new THREE.Clock();
@@ -115,22 +119,19 @@ function onWindowResize() {
 
 function animate() {
     requestAnimationFrame(animate);
-    const delta = clock.getDelta();
+    const delta = clock.getDelta() * speedMultiplier;
 
     controls.update();
 
-    // Update planet system animation (rotation and orbit)
     if (planetSystem) {
         planetSystem.update(delta);
         planetSystem.updateLabels(camera);
     }
 
-    // Update asteroid belt animation
     if (asteroidBelt) {
         asteroidBelt.update(delta);
     }
 
-    // Rotate ambient light indicator if it exists
     const ambientIndicator = scene.getObjectByName('ambientLightIndicator');
     if (ambientIndicator) {
         ambientIndicator.rotation.x += delta * 0.3;
@@ -169,10 +170,7 @@ function setupKeyboardControls() {
 }
 
 function setupMouseControls() {
-    // Add mouse click event listener
     renderer.domElement.addEventListener('click', onMouseClick);
-    
-    // Add mouse move event listener for hover effects
     renderer.domElement.addEventListener('mousemove', onMouseMove);
 }
 
@@ -236,7 +234,6 @@ function focusCameraOnPlanet(planetName) {
         return;
     }
     
-    // Get the current world position of the planet mesh
     const planetPosition = new THREE.Vector3();
     planet.getWorldPosition(planetPosition);
     
@@ -301,5 +298,29 @@ function setupResetButton() {
     const resetButton = document.getElementById('reset');
     if (resetButton) {
         resetButton.addEventListener('click', resetCamera);
+    }
+}
+
+function setupSpeedControl() {
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+    const revertButton = document.getElementById('revertSpeed');
+    
+    if (speedSlider && speedValue) {
+        speedSlider.addEventListener('input', (event) => {
+            speedMultiplier = parseFloat(event.target.value);
+            speedValue.textContent = speedMultiplier.toFixed(1);
+        });
+        
+        // Initialize the display
+        speedValue.textContent = speedMultiplier.toFixed(1);
+    }
+    
+    if (revertButton) {
+        revertButton.addEventListener('click', () => {
+            speedMultiplier = 1.0;
+            speedSlider.value = 1.0;
+            speedValue.textContent = speedMultiplier.toFixed(1);
+        });
     }
 }
