@@ -87,6 +87,7 @@ function init() {
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.maxDistance = 550;
     controls.dampingFactor = 0.1;
     controls.enableZoom = true;
     controls.enableRotate = true;
