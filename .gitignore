@@ -21,20 +21,3 @@ build/
 Desktop.ini
 Icon[
 ]
-ehthumbs.db
-Thumbs.db
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# ESLint config (keeping your existing exceptions)
-!/.gitignore
-!/.eslintrc.json
