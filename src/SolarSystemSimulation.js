@@ -9,13 +9,19 @@ import { Starfield } from './Starfield.js';
 import { PlanetSystem } from './PlanetSystem.js';
 import { AsteroidBelt } from './AsteroidBelt.js';
 import { Constellation } from './Constellation.js';
+import { SpaceShuttle } from './SpaceShuttle.js';
 
-
-let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup, constellationSystem, constellationGroup;
+let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup, constellationSystem, constellationGroup, spaceShuttle;
 let composer, bloomPass;
 let raycaster, mouse;
 let speedMultiplier = 1.0;
 let gui;
+
+// Shuttle mode variables
+let isShuttleMode = false;
+let originalCameraPosition = new THREE.Vector3(0, 10, 30);
+let originalCameraTarget = new THREE.Vector3(0, 0, 0);
+let shuttleControlsRef = null; // Reference to GUI shuttle controls
 
 const planetKeyMap = {
     '1': 'Mercury',
@@ -97,6 +103,12 @@ function init() {
     constellationGroup = constellationSystem.create();
     scene.add(constellationGroup);
 
+    // Create and add space shuttle
+    spaceShuttle = new SpaceShuttle(scene);
+    spaceShuttle.setPosition(5, 5, 5);
+    spaceShuttle.setRotation(0, Math.PI / 2, 0);
+    spaceShuttle.setScale(0.1, 0.1, 0.1);
+
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -140,7 +152,21 @@ function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta() * speedMultiplier;
 
-    controls.update();
+    // Update shuttle
+    if (spaceShuttle) {
+        spaceShuttle.update(delta);
+    }
+
+    // Handle shuttle mode camera
+    if (isShuttleMode && spaceShuttle && spaceShuttle.model) {
+        const cameraPosition = spaceShuttle.getCameraPosition();
+        const cameraTarget = spaceShuttle.getCameraTarget();
+        
+        camera.position.copy(cameraPosition);
+        camera.lookAt(cameraTarget);
+    } else {
+        controls.update();
+    }
 
     if (planetSystem) {
         planetSystem.update(delta);
@@ -180,11 +206,53 @@ function setupPostProcessing() {
 init();
 
 /**
- * Sets up keyboard controls for planet selection.
+ * Sets up keyboard controls for planet selection and shuttle controls.
  */
 function setupKeyboardControls() {
+    // Handle keydown events
     document.addEventListener('keydown', (event) => {
-        const key = event.key;
+        const key = event.key.toLowerCase();
+        
+        // Toggle shuttle mode with 'Tab' key
+        if (event.code === 'Tab') {
+            event.preventDefault();
+            toggleShuttleMode();
+            return;
+        }
+        
+        // Handle shuttle controls when in shuttle mode
+        if (isShuttleMode && spaceShuttle) {
+            switch (key) {
+            case 'w':
+                spaceShuttle.setControl('up', true);
+                break;
+            case 's':
+                spaceShuttle.setControl('down', true);
+                break;
+            case 'a':
+                spaceShuttle.setControl('left', true);
+                break;
+            case 'd':
+                spaceShuttle.setControl('right', true);
+                break;
+            case 'q':
+                spaceShuttle.setControl('rollLeft', true);
+                break;
+            case 'e':
+                spaceShuttle.setControl('rollRight', true);
+                break;
+            }
+            
+            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                spaceShuttle.setControl('thrust', true);
+            }
+            if (event.code === 'ControlLeft' || event.code === 'ControlRight') {
+                spaceShuttle.setControl('decreaseThrust', true);
+            }
+            return;
+        }
+        
+        // Handle planet selection (only when not in shuttle mode)
         if (planetKeyMap[key]) {
             const planetName = planetKeyMap[key];
 
@@ -197,6 +265,135 @@ function setupKeyboardControls() {
             }
         }
     });
+    
+    // Handle keyup events
+    document.addEventListener('keyup', (event) => {
+        const key = event.key.toLowerCase();
+        
+        // Handle shuttle controls when in shuttle mode
+        if (isShuttleMode && spaceShuttle) {
+            switch (key) {
+            case 'w':
+                spaceShuttle.setControl('up', false);
+                break;
+            case 's':
+                spaceShuttle.setControl('down', false);
+                break;
+            case 'a':
+                spaceShuttle.setControl('left', false);
+                break;
+            case 'd':
+                spaceShuttle.setControl('right', false);
+                break;
+            case 'q':
+                spaceShuttle.setControl('rollLeft', false);
+                break;
+            case 'e':
+                spaceShuttle.setControl('rollRight', false);
+                break;
+            }
+            
+            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                spaceShuttle.setControl('thrust', false);
+            }
+            if (event.code === 'ControlLeft' || event.code === 'ControlRight') {
+                spaceShuttle.setControl('decreaseThrust', false);
+            }
+        }
+    });
+}
+
+/**
+ * Toggles between shuttle mode and normal camera mode.
+ */
+function toggleShuttleMode() {
+    isShuttleMode = !isShuttleMode;
+    
+    if (isShuttleMode) {
+        // Store current camera state
+        originalCameraPosition.copy(camera.position);
+        originalCameraTarget.copy(controls.target);
+        
+        // Disable orbit controls
+        controls.enabled = false;
+        
+        // Position shuttle at current camera location if it exists
+        if (spaceShuttle && spaceShuttle.model) {
+            spaceShuttle.setPosition(camera.position.x, camera.position.y, camera.position.z);
+        }
+        
+        // Show shuttle model in shuttle mode
+        if (spaceShuttle) {
+            spaceShuttle.setVisible(true);
+        }
+        
+        // Show shuttle mode UI feedback
+        showShuttleModeIndicator();
+    } else {
+        // Re-enable orbit controls
+        controls.enabled = true;
+        
+        // Restore original camera position
+        camera.position.copy(originalCameraPosition);
+        controls.target.copy(originalCameraTarget);
+        controls.update();
+        
+        // Hide shuttle model in perspective mode
+        if (spaceShuttle) {
+            spaceShuttle.setVisible(false);
+        }
+        
+        // Hide shuttle mode UI feedback
+        hideShuttleModeIndicator();
+    }
+    
+    // Update GUI dropdown if it exists
+    if (shuttleControlsRef) {
+        shuttleControlsRef.cameraMode = isShuttleMode ? 'Shuttle Mode' : 'Perspective Camera';
+    }
+}
+
+/**
+ * Shows shuttle mode indicator on screen.
+ */
+function showShuttleModeIndicator() {
+    let indicator = document.getElementById('shuttleModeIndicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'shuttleModeIndicator';
+        indicator.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 255, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        `;
+        indicator.innerHTML = `
+            <div>🚀 SHUTTLE MODE</div>
+            <div style="font-size: 12px; margin-top: 5px;">
+                W/S: Pitch | A/D: Yaw | Q/E: Roll<br>
+                Shift: Thrust | Ctrl: Brake | Tab: Exit
+            </div>
+        `;
+        document.body.appendChild(indicator);
+    }
+    indicator.style.display = 'block';
+}
+
+/**
+ * Hides shuttle mode indicator.
+ */
+function hideShuttleModeIndicator() {
+    const indicator = document.getElementById('shuttleModeIndicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
 }
 
 /**
@@ -500,6 +697,30 @@ function setupGUIControls() {
         .name('Orbital Speed')
         .onChange((value) => {
             speedMultiplier = value;
+        });
+
+    // Add shuttle controls folder
+    const shuttleControlsFolder = gui.addFolder('Shuttle Controls');
+    
+    const shuttleControls = {
+        cameraMode: 'Perspective Camera', // Default mode
+        toggleMode: () => {
+            toggleShuttleMode();
+            shuttleControls.cameraMode = isShuttleMode ? 'Shuttle Mode' : 'Perspective Camera';
+        }
+    };
+    
+    // Store reference for updating from keyboard toggle
+    shuttleControlsRef = shuttleControls;
+    
+    // Dropdown for camera mode selection
+    shuttleControlsFolder.add(shuttleControls, 'cameraMode', ['Perspective Camera', 'Shuttle Mode'])
+        .name('Camera Mode')
+        .onChange((value) => {
+            const shouldBeShuttleMode = (value === 'Shuttle Mode');
+            if (shouldBeShuttleMode !== isShuttleMode) {
+                toggleShuttleMode();
+            }
         });
 
     const constellationControlsFolder = gui.addFolder('Constellation Controls');
