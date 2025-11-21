@@ -1,11 +1,18 @@
 import * as THREE from 'three';
 
+/**
+ * Class representing an asteroid belt in the solar system simulation.
+ */
 export class AsteroidBelt {
     constructor() {
         this.asteroids = [];
         this.asteroidBeltGroup = null;
     }
 
+    /**
+     * Creates the asteroid belt.
+     * @returns {THREE.Group} The group containing all asteroids in the belt.
+     */
     create() {
         this.asteroidBeltGroup = new THREE.Group();
         this.asteroidBeltGroup.name = 'AsteroidBeltGroup';
@@ -25,6 +32,14 @@ export class AsteroidBelt {
         return this.asteroidBeltGroup;
     }
 
+    /**
+     * Creates a single asteroid with random properties.
+     * @param {number} innerRadius - The inner radius of the asteroid belt.
+     * @param {number} outerRadius - The outer radius of the asteroid belt.
+     * @param {number} minSize - The minimum size of the asteroid.
+     * @param {number} maxSize - The maximum size of the asteroid.
+     * @returns {THREE.Mesh} The created asteroid mesh.
+     */
     createAsteroid(innerRadius, outerRadius, minSize, maxSize) {
         const angle = Math.random() * Math.PI * 2;
         const radius = innerRadius + Math.random() * (outerRadius - innerRadius);
@@ -69,6 +84,11 @@ export class AsteroidBelt {
         return asteroid;
     }
 
+    /**
+     * Creates an irregular geometry for the asteroid.
+     * @param {number} baseSize - The base size of the asteroid.
+     * @returns {THREE.BufferGeometry} The created irregular geometry.
+     */
     createIrregularGeometry(baseSize) {
         const geometry = new THREE.SphereGeometry(baseSize, 8, 6);
         
@@ -93,6 +113,10 @@ export class AsteroidBelt {
         return geometry;
     }
 
+    /**
+     * Updates the asteroid belt for animation.
+     * @param {number} deltaTime - The time elapsed since the last update.
+     */
     update(deltaTime) {
         this.asteroids.forEach(asteroid => {
             const userData = asteroid.userData;
