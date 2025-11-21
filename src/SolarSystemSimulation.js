@@ -7,8 +7,9 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Starfield } from './Starfield.js';
 import { PlanetSystem } from './PlanetSystem.js';
 import { AsteroidBelt } from './AsteroidBelt.js';
+import { Constellation } from './Constellation.js';
 
-let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup;
+let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup, constellationSystem, constellationGroup;
 let composer, bloomPass;
 let raycaster, mouse;
 let speedMultiplier = 1.0;
@@ -87,6 +88,11 @@ function init() {
     asteroidBeltGroup = asteroidBelt.create();
     scene.add(asteroidBeltGroup);
 
+    // Create and add constellations
+    constellationSystem = new Constellation();
+    constellationGroup = constellationSystem.create();
+    scene.add(constellationGroup);
+
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -99,6 +105,7 @@ function init() {
     // Set up keyboard and mouse controls
     setupKeyboardControls();
     raycaster = new THREE.Raycaster();
+    raycaster.params.Points.threshold = 2.0; // Increase threshold for easier clicking on small star objects
     mouse = new THREE.Vector2();
     setupMouseControls();
     
@@ -107,6 +114,12 @@ function init() {
     
     // Set up speed control slider
     setupSpeedControl();
+    
+    // Set up constellation controls
+    setupConstellationControls();
+    
+    // Set up constellation controls
+    setupConstellationControls();
 
     // Clock setup
     clock = new THREE.Clock();
@@ -140,6 +153,10 @@ function animate() {
 
     if (asteroidBelt) {
         asteroidBelt.update(delta);
+    }
+
+    if (constellationSystem) {
+        constellationSystem.update(delta);
     }
 
     const ambientIndicator = scene.getObjectByName('ambientLightIndicator');
@@ -220,6 +237,30 @@ function onMouseClick(event) {
 
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
+        return; // Exit early if planet was clicked
+    }
+    
+    // Check for constellation clicks
+    const constellationObjects = [];
+    if (constellationGroup) {
+        constellationGroup.traverse((child) => {
+            if (child.isMesh && child.userData && child.userData.isConstellationStar) {
+                constellationObjects.push(child);
+            }
+        });
+    }
+    
+    const constellationIntersects = raycaster.intersectObjects(constellationObjects);
+    if (constellationIntersects.length > 0) {
+        const clickedStar = constellationIntersects[0].object;
+        const constellationName = clickedStar.userData.constellationName;
+        
+        console.log('Clicked constellation star:', clickedStar.userData.starName, 'in constellation:', constellationName); // Debug
+        
+        if (constellationName && constellationSystem) {
+            constellationSystem.toggleConstellationFocus(constellationName);
+            focusCameraOnConstellation(constellationName);
+        }
     }
 }
 
@@ -244,6 +285,22 @@ function onMouseMove(event) {
     const intersects = raycaster.intersectObjects(clickableObjects);
 
     if (intersects.length > 0) {
+        renderer.domElement.style.cursor = 'pointer';
+        return;
+    }
+    
+    // Check for constellation hover
+    const constellationObjects = [];
+    if (constellationGroup) {
+        constellationGroup.traverse((child) => {
+            if (child.isMesh && child.userData && child.userData.isConstellationStar) {
+                constellationObjects.push(child);
+            }
+        });
+    }
+    
+    const constellationIntersects = raycaster.intersectObjects(constellationObjects);
+    if (constellationIntersects.length > 0) {
         renderer.domElement.style.cursor = 'pointer';
     } else {
         renderer.domElement.style.cursor = 'default';
@@ -293,6 +350,27 @@ function focusCameraOnPlanet(planetName) {
     );
 
     animateCameraToTarget(cameraPosition, planetPosition);
+}
+
+/**
+ * Focuses the camera on a specific constellation.
+ * @param {string} constellationName - The name of the constellation to focus on.
+ */
+function focusCameraOnConstellation(constellationName) {
+    if (!constellationSystem) return;
+    
+    const constellationCenter = constellationSystem.getConstellationCenter(constellationName);
+    
+    // Calculate camera distance based on constellation spread
+    const cameraDistance = 50; // Constellations are far away, so we need more distance
+    
+    const cameraPosition = new THREE.Vector3(
+        constellationCenter.x + cameraDistance * 0.7,
+        constellationCenter.y + cameraDistance * 0.5,
+        constellationCenter.z + cameraDistance * 0.7
+    );
+
+    animateCameraToTarget(cameraPosition, constellationCenter);
 }
 
 /**
@@ -367,6 +445,26 @@ function setupSpeedControl() {
             speedMultiplier = 1.0;
             speedSlider.value = 1.0;
             speedValue.textContent = speedMultiplier.toFixed(1);
+        });
+    }
+}
+
+/** 
+ * Sets up the constellation control functionality.
+ */
+function setupConstellationControls() {
+    const constellationLinesToggle = document.getElementById('toggleConstellationLines');
+    const constellationLabelsToggle = document.getElementById('toggleConstellationLabels');
+    
+    if (constellationLinesToggle && constellationSystem) {
+        constellationLinesToggle.addEventListener('change', () => {
+            constellationSystem.toggleLines();
+        });
+    }
+    
+    if (constellationLabelsToggle && constellationSystem) {
+        constellationLabelsToggle.addEventListener('change', () => {
+            constellationSystem.toggleLabels();
         });
     }
 }
