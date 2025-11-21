@@ -243,7 +243,6 @@ function onMouseClick(event) {
         const clickedPlanet = intersects[0].object;
         const planetName = clickedPlanet.name;
 
-<<<<<<< HEAD
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
         return; // Exit early if planet was clicked
@@ -269,7 +268,6 @@ function onMouseClick(event) {
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
             focusCameraOnConstellation(constellationName);
-=======
         // Handle Earth's moon clicks
         if (planetName === 'EarthMoon') {
             planetSystem.toggleLabel('Earth\'s Moon');
@@ -277,7 +275,6 @@ function onMouseClick(event) {
         } else {
             planetSystem.toggleLabel(planetName);
             focusCameraOnPlanet(planetName);
->>>>>>> d028fbe7448477d51a0f905d745781fc658513f3
         }
     }
 }
