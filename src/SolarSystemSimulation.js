@@ -101,15 +101,21 @@ function init() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.maxDistance = 550;
-    controls.dampingFactor = 0.1;
+    controls.minDistance = 1;
+    controls.dampingFactor = 0.05;
     controls.enableZoom = true;
     controls.enableRotate = true;
     controls.enablePan = true;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0;
+    controls.screenSpacePanning = false;
+    controls.maxPolarAngle = Math.PI;
 
     // Setup interaction controls
     setupKeyboardControls();
     raycaster = new THREE.Raycaster();
     raycaster.params.Points.threshold = 2.0;
+    raycaster.layers.set(0); // Only check objects on layer 0 by default
     mouse = new THREE.Vector2();
     setupMouseControls();
     
@@ -204,11 +210,12 @@ function setupKeyboardControls() {
  */
 function setupMouseControls() {
     renderer.domElement.addEventListener('click', onMouseClick);
+    renderer.domElement.addEventListener('dblclick', onMouseDoubleClick);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
 }
 
 /**
- * Handles mouse click events for planet selection.
+ * Handles mouse click events for planet selection only.
  * @param {*} event 
  */
 function onMouseClick(event) {
@@ -217,6 +224,8 @@ function onMouseClick(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+    // Only check planets on single click
+    raycaster.layers.set(0);
     raycaster.setFromCamera(mouse, camera);
 
     const clickableObjects = [];
@@ -226,7 +235,6 @@ function onMouseClick(event) {
         }
     });
 
-
     const intersects = raycaster.intersectObjects(clickableObjects);
 
     if (intersects.length > 0) {
@@ -235,38 +243,66 @@ function onMouseClick(event) {
 
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
-        return;
     }
-
     
-    const constellationObjects = [];
+    // Reset raycaster to default layer
+    raycaster.layers.set(0);
+}
+
+/**
+ * Handles mouse double-click events for constellation selection.
+ * @param {*} event 
+ */
+function onMouseDoubleClick(event) {
+    
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    // First check constellation stars on layer 0
+    raycaster.layers.set(0);
+    raycaster.setFromCamera(mouse, camera);
+    
+    const constellationStars = [];
     if (constellationGroup && constellationSystem) {
-        const colliders = constellationSystem.getConstellationColliders();
-        constellationObjects.push(...colliders);
-        
         constellationGroup.traverse((child) => {
             if (child.isMesh && child.userData && child.userData.isConstellationStar) {
-                constellationObjects.push(child);
+                constellationStars.push(child);
             }
         });
     }
     
-    const constellationIntersects = raycaster.intersectObjects(constellationObjects);
-    if (constellationIntersects.length > 0) {
-        const clickedObject = constellationIntersects[0].object;
-        let constellationName;
+    const starIntersects = raycaster.intersectObjects(constellationStars);
+    if (starIntersects.length > 0) {
+        const clickedStar = starIntersects[0].object;
+        const constellationName = clickedStar.userData.constellationName;
         
-        if (clickedObject.userData.isConstellationCollider) {
-            constellationName = clickedObject.userData.constellationName;
-        } else if (clickedObject.userData.isConstellationStar) {
-            constellationName = clickedObject.userData.constellationName;
+        if (constellationName && constellationSystem) {
+            constellationSystem.toggleConstellationFocus(constellationName);
+            focusCameraOnConstellation(constellationName);
         }
+        return;
+    }
+    
+    // Check constellation colliders on layer 1 as fallback
+    raycaster.layers.set(1);
+    raycaster.setFromCamera(mouse, camera);
+    
+    const colliders = constellationSystem ? constellationSystem.getConstellationColliders() : [];
+    const colliderIntersects = raycaster.intersectObjects(colliders);
+    
+    if (colliderIntersects.length > 0) {
+        const clickedCollider = colliderIntersects[0].object;
+        const constellationName = clickedCollider.userData.constellationName;
         
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
             focusCameraOnConstellation(constellationName);
         }
     }
+    
+    // Reset raycaster to default layer
+    raycaster.layers.set(0);
 }
 
 /**
@@ -278,6 +314,8 @@ function onMouseMove(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+    // Only check layer 0 objects for hover (planets and constellation stars)
+    raycaster.layers.set(0);
     raycaster.setFromCamera(mouse, camera);
 
     const clickableObjects = [];
@@ -294,20 +332,18 @@ function onMouseMove(event) {
         return;
     }
     
-    const constellationObjects = [];
+    // Check constellation stars only (not collision spheres)
+    const constellationStars = [];
     if (constellationGroup && constellationSystem) {
-        const colliders = constellationSystem.getConstellationColliders();
-        constellationObjects.push(...colliders);
-        
         constellationGroup.traverse((child) => {
             if (child.isMesh && child.userData && child.userData.isConstellationStar) {
-                constellationObjects.push(child);
+                constellationStars.push(child);
             }
         });
     }
     
-    const constellationIntersects = raycaster.intersectObjects(constellationObjects);
-    if (constellationIntersects.length > 0) {
+    const starIntersects = raycaster.intersectObjects(constellationStars);
+    if (starIntersects.length > 0) {
         renderer.domElement.style.cursor = 'pointer';
     } else {
         renderer.domElement.style.cursor = 'default';
