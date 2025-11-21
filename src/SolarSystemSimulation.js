@@ -17,6 +17,11 @@ let raycaster, mouse;
 let speedMultiplier = 1.0;
 let gui;
 
+// FPS tracking variables
+let fpsCounter = 0;
+let fpsElement;
+let lastTime = performance.now();
+
 const planetKeyMap = {
     '1': 'Mercury',
     '2': 'Venus',
@@ -124,6 +129,9 @@ function init() {
     setupConstellationControls();
     setupGUIControls();
 
+    // Initialize FPS counter
+    fpsElement = document.getElementById('fps');
+
     clock = new THREE.Clock();
     window.addEventListener("resize", onWindowResize);
     animate();
@@ -145,6 +153,19 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta() * speedMultiplier;
+
+    // Calculate FPS
+    const currentTime = performance.now();
+    fpsCounter++;
+    
+    if (currentTime - lastTime >= 1000) {
+        const fps = Math.round((fpsCounter * 1000) / (currentTime - lastTime));
+        if (fpsElement) {
+            fpsElement.textContent = `FPS: ${fps}`;
+        }
+        fpsCounter = 0;
+        lastTime = currentTime;
+    }
 
     controls.update();
 

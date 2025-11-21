@@ -19,7 +19,7 @@ export class AsteroidBelt {
 
         const innerRadius = 23;
         const outerRadius = 32;
-        const asteroidCount = 1500;
+        const asteroidCount = 9500;
         const minSize = 0.02;
         const maxSize = 0.15;
 
