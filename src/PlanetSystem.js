@@ -112,6 +112,9 @@ const planetsData = [
     }
 ];
 
+/**
+ * Class representing the planet system in the solar system simulation.
+ */
 export class PlanetSystem {
     constructor() {
         this.textureLoader = new THREE.TextureLoader();
@@ -137,10 +140,18 @@ export class PlanetSystem {
         });
     }
 
+    /**
+     * Adds a planet to the solar system model.
+     * @param {*} planet - The planet to add.
+     */
     addPlanet(planet) {
         this.planets.push(planet);
     }
 
+    /**
+     * Creates the planet system group containing all planets and their features.
+     * @returns {THREE.Group} The group containing all planets.
+     */
     create() {
         const group = new THREE.Group();
         
@@ -181,6 +192,11 @@ export class PlanetSystem {
         return group;
     }
 
+    /**
+     * Creates the mesh for a planet.
+     * @param {*} planet - The planet data.
+     * @returns {THREE.Mesh} The mesh representing the planet.
+     */
     createPlanetMesh(planet) {
         const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
         
@@ -208,6 +224,11 @@ export class PlanetSystem {
         return mesh;
     }
 
+    /**
+     * Creates the atmosphere for a planet.
+     * @param {*} planet - The planet data.
+     * @returns {THREE.Mesh} The mesh representing the planet's atmosphere.
+     */
     createPlanetAtmosphere(planet) {
         const atmosphereRadius = planet.size * 1.1;
         const geometry = new THREE.SphereGeometry(atmosphereRadius, 32, 32);
@@ -242,6 +263,11 @@ export class PlanetSystem {
         return atmosphereMesh;
     }
 
+    /**
+     * Gets the atmosphere color for a planet.
+     * @param {string} planetName - The name of the planet.
+     * @returns {number} The hexadecimal color of the atmosphere.
+     */
     getAtmosphereColor(planetName) {
         const atmosphereColors = {
             'Sun': 0xff6600, 
@@ -257,6 +283,11 @@ export class PlanetSystem {
         return atmosphereColors[planetName];
     }
 
+    /**
+     * Creates the rings for Saturn.
+     * @param {*} planet - The planet data for Saturn.
+     * @returns {THREE.Mesh} The mesh representing Saturn's rings.
+     */
     createSaturnRings(planet) {
         const innerRadius = planet.size * 1.2;
         const outerRadius = planet.size * 2.2; 
@@ -283,6 +314,11 @@ export class PlanetSystem {
         return ringMesh;
     }
 
+    /**
+     * Creates the orbital line for a planet.
+     * @param {*} planet - The planet data.
+     * @returns {THREE.Line} The line representing the planet's orbit.
+     */
     createOrbitalLine(planet) {
         const orbitalRadius = Math.sqrt(
             planet.position.x * planet.position.x + 
@@ -315,6 +351,11 @@ export class PlanetSystem {
         return orbitalLine;
     }
 
+    /**
+     * Creates the label sprite for a planet.
+     * @param {*} planet - The planet data.
+     * @returns {THREE.Sprite} The sprite representing the planet's label.
+     */
     createPlanetLabel(planet) {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -359,6 +400,10 @@ export class PlanetSystem {
         return sprite;
     }
 
+    /**
+     * Shows the label for a specific planet.
+     * @param {string} planetName - The name of the planet.
+     */
     showLabel(planetName) {
         this.hideAllLabels();
         
@@ -369,6 +414,10 @@ export class PlanetSystem {
         }
     }
 
+    /**
+     * Hides the label for a specific planet.
+     * @param {string} planetName - The name of the planet.
+     */
     hideLabel(planetName) {
         const label = this.planetLabels.get(planetName);
         if (label) {
@@ -379,6 +428,9 @@ export class PlanetSystem {
         }
     }
 
+    /**
+     * Hides all planet labels.
+     */
     hideAllLabels() {
         this.planetLabels.forEach((label) => {
             label.material.opacity = 0;
@@ -386,6 +438,10 @@ export class PlanetSystem {
         this.activeLabelName = null;
     }
 
+    /**
+     * Toggles the label for a specific planet.
+     * @param {string} planetName - The name of the planet.
+     */
     toggleLabel(planetName) {
         if (this.activeLabelName === planetName) {
             this.hideLabel(planetName);
@@ -394,6 +450,10 @@ export class PlanetSystem {
         }
     }
 
+    /**
+     * Updates the positions and scales of planet labels based on camera position.
+     * @param {THREE.Camera} camera - The camera in the scene.
+     */
     updateLabels(camera) {
         this.planetLabels.forEach((label, planetName) => {
             const planet = this.planets.find(p => p.name === planetName);
@@ -415,6 +475,10 @@ export class PlanetSystem {
         });
     }
 
+    /**
+     * Updates the planet system for animation.
+     * @param {number} deltaTime - The time elapsed since the last update.
+     */
     update(deltaTime) {
         this.planets.forEach(planet => {
             const planetMesh = this.planetMeshes.get(planet.name);
