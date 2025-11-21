@@ -1,5 +1,6 @@
 // src/SolarSystemSimulation.js
 import * as THREE from 'three';
+import GUI from 'lil-gui';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -9,10 +10,12 @@ import { PlanetSystem } from './PlanetSystem.js';
 import { AsteroidBelt } from './AsteroidBelt.js';
 import { Constellation } from './Constellation.js';
 
+
 let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup, constellationSystem, constellationGroup;
 let composer, bloomPass;
 let raycaster, mouse;
 let speedMultiplier = 1.0;
+let gui;
 
 const planetKeyMap = {
     '1': 'Mercury',
@@ -118,6 +121,9 @@ function init() {
     
     // Set up constellation controls
     setupConstellationControls();
+    
+    // Set up GUI controls
+    setupGUIControls();
 
     // Clock setup
     clock = new THREE.Clock();
@@ -261,8 +267,6 @@ function onMouseClick(event) {
     if (constellationIntersects.length > 0) {
         const clickedStar = constellationIntersects[0].object;
         const constellationName = clickedStar.userData.constellationName;
-        
-        console.log('Clicked constellation star:', clickedStar.userData.starName, 'in constellation:', constellationName); // Debug
         
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
@@ -489,4 +493,42 @@ function setupConstellationControls() {
             constellationSystem.toggleLabels();
         });
     }
+}
+
+/**
+ * Sets up the GUI controls for the solar system simulation.
+ */
+function setupGUIControls() {
+    gui = new GUI();
+    gui.title('Solar System Controls');
+
+    const orbitalControlsFolder = gui.addFolder('Orbital Controls');
+    orbitalControlsFolder.add({ orbitalSpeed: speedMultiplier }, 'orbitalSpeed', 0, 5, 0.1)
+        .name('Orbital Speed')
+        .onChange((value) => {
+            speedMultiplier = value;
+        });
+
+    const constellationControlsFolder = gui.addFolder('Constellation Controls');
+
+    const constellationControls = {
+        showLines: true,
+        showLabels: true
+    };
+    
+    constellationControlsFolder.add(constellationControls, 'showLines')
+        .name('Show Constellation Lines')
+        .onChange(() => {
+            if (constellationSystem) {
+                constellationSystem.toggleLines();
+            }
+        });
+    
+    constellationControlsFolder.add(constellationControls, 'showLabels')
+        .name('Show Constellation Labels')
+        .onChange(() => {
+            if (constellationSystem) {
+                constellationSystem.toggleLabels();
+            }
+        });
 }
