@@ -7,6 +7,9 @@ export class Starfield {
         this.stars = null;
     }
 
+    /**
+     * Creates the starfield geometry and material.
+     */
     create() {
         const starGeometry = new THREE.BufferGeometry();
         
@@ -52,6 +55,10 @@ export class Starfield {
         return this.stars;
     }
 
+    /**
+     * Adds the starfield to the given scene.
+     * @param {THREE.Scene} scene 
+     */
     addToScene(scene) {
         if (!this.stars) {
             this.create();
@@ -59,12 +66,19 @@ export class Starfield {
         scene.add(this.stars);
     }
 
+    /**
+     * Removes the starfield from the given scene.
+     * @param {THREE.Scene} scene 
+     */
     removeFromScene(scene) {
         if (this.stars) {
             scene.remove(this.stars);
         }
     }
 
+    /**
+     * Disposes of the starfield resources.
+     */
     dispose() {
         if (this.stars) {
             this.stars.geometry.dispose();
