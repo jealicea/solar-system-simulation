@@ -23,7 +23,8 @@ const planetKeyMap = {
     '6': 'Saturn',
     '7': 'Uranus',
     '8': 'Neptune',
-    '9': 'Sun'
+    '9': 'Sun',
+    '0': 'Earth\'s Moon'
 };
 
 /**
@@ -196,8 +197,15 @@ function setupKeyboardControls() {
         const key = event.key;
         if (planetKeyMap[key]) {
             const planetName = planetKeyMap[key];
-            planetSystem.toggleLabel(planetName);
-            focusCameraOnPlanet(planetName);
+            
+            // Handle Earth's Moon specially
+            if (planetName === 'Earth\'s Moon') {
+                planetSystem.toggleLabel('Earth\'s Moon');
+                focusCameraOnPlanet('EarthMoon');
+            } else {
+                planetSystem.toggleLabel(planetName);
+                focusCameraOnPlanet(planetName);
+            }
         }
     });
 }
@@ -235,6 +243,7 @@ function onMouseClick(event) {
         const clickedPlanet = intersects[0].object;
         const planetName = clickedPlanet.name;
 
+<<<<<<< HEAD
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
         return; // Exit early if planet was clicked
@@ -260,6 +269,15 @@ function onMouseClick(event) {
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
             focusCameraOnConstellation(constellationName);
+=======
+        // Handle Earth's moon clicks
+        if (planetName === 'EarthMoon') {
+            planetSystem.toggleLabel('Earth\'s Moon');
+            focusCameraOnPlanet('EarthMoon');
+        } else {
+            planetSystem.toggleLabel(planetName);
+            focusCameraOnPlanet(planetName);
+>>>>>>> d028fbe7448477d51a0f905d745781fc658513f3
         }
     }
 }
@@ -313,12 +331,25 @@ function onMouseMove(event) {
  * @returns 
  */
 function focusCameraOnPlanet(planetName) {
-    const planetGroup = planetsGroup.getObjectByName(`${planetName}Group`);
-    if (!planetGroup) {
-        return;
+    let planetGroup, planet;
+    
+    if (planetName === 'EarthMoon') {
+        // Handle Earth's moon focusing
+        const earthGroup = planetsGroup.getObjectByName('EarthGroup');
+        if (earthGroup) {
+            const moonGroup = earthGroup.getObjectByName('MoonGroup');
+            if (moonGroup) {
+                planet = moonGroup.getObjectByName('EarthMoon');
+            }
+        }
+    } else {
+        // Handle regular planet focusing
+        planetGroup = planetsGroup.getObjectByName(`${planetName}Group`);
+        if (planetGroup) {
+            planet = planetGroup.getObjectByName(planetName);
+        }
     }
     
-    const planet = planetGroup.getObjectByName(planetName);
     if (!planet) {
         return;
     }
@@ -328,6 +359,9 @@ function focusCameraOnPlanet(planetName) {
     
     let cameraDistance;
     switch(planetName) {
+    case 'EarthMoon':
+        cameraDistance = 2;
+        break;
     case 'Sun':
         cameraDistance = 15;
         break;
@@ -422,8 +456,7 @@ function setupResetButton() {
     }
 }
 
-/** 
- * Sets up the speed control slider functionality.
+/** Sets up the speed control slider functionality.
  */
 function setupSpeedControl() {
     const speedSlider = document.getElementById('speedSlider');

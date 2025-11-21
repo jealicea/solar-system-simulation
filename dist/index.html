@@ -1,4 +1,13 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="icon" type="image/png" href="assets/favicon.png"/><title>Solar System Simulation</title><style>body {
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="assets/favicon.png" />
+    <title>Solar System Simulation</title>
+    <style>
+        body {
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -101,4 +110,28 @@
             height: 100%;
             display: block;
             z-index: 1;
-        }</style><script defer="defer" src="final-project.js"></script></head><body><div id="container"><div id="info"><h1>Solar System Simulation</h1></div><div id="speedControl"><strong>Orbital Speed</strong><br><input type="range" id="speedSlider" min="0" max="10" step="0.1" value="1"><div>Speed: <span id="speedValue">1.0</span>x</div><button id="revertSpeed">Revert to Original</button></div><div id="controls"><strong>Controls:</strong><br>1-9 : Select Planet<br>+/- : Adjust Time Speed<br>Space : Pause<br><button id="reset">Reset</button></div></div><canvas id="scene"></canvas></body></html>
+        }
+    </style>
+<script defer src="final-project.js"></script></head>
+<body>
+    <div id="container">
+        <div id="info">
+            <h1>Solar System Simulation</h1>
+        </div>
+        <div id="speedControl">
+            <strong>Orbital Speed</strong><br>
+            <input type="range" id="speedSlider" min="0" max="10" step="0.1" value="1">
+            <div>Speed: <span id="speedValue">1.0</span>x</div>
+            <button id="revertSpeed">Revert to Original</button>
+        </div>
+        <div id="controls">
+            <strong>Controls:</strong><br>
+            1-9 : Select Planet<br>
+            +/- : Adjust Time Speed<br>
+            Space : Pause<br>
+            <button id="reset">Reset</button>
+        </div>
+    </div>
+    <canvas id="scene"></canvas>
+</body>
+</html>
