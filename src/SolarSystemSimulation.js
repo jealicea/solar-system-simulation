@@ -118,9 +118,6 @@ function init() {
     
     // Set up constellation controls
     setupConstellationControls();
-    
-    // Set up constellation controls
-    setupConstellationControls();
 
     // Clock setup
     clock = new THREE.Clock();
@@ -237,6 +234,7 @@ function onMouseClick(event) {
         }
     });
 
+
     const intersects = raycaster.intersectObjects(clickableObjects);
 
     if (intersects.length > 0) {
@@ -247,6 +245,7 @@ function onMouseClick(event) {
         focusCameraOnPlanet(planetName);
         return; // Exit early if planet was clicked
     }
+
     
     // Check for constellation clicks
     const constellationObjects = [];
@@ -268,13 +267,6 @@ function onMouseClick(event) {
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
             focusCameraOnConstellation(constellationName);
-        // Handle Earth's moon clicks
-        if (planetName === 'EarthMoon') {
-            planetSystem.toggleLabel('Earth\'s Moon');
-            focusCameraOnPlanet('EarthMoon');
-        } else {
-            planetSystem.toggleLabel(planetName);
-            focusCameraOnPlanet(planetName);
         }
     }
 }
