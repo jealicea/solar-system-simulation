@@ -25,6 +25,9 @@ const planetKeyMap = {
     '9': 'Sun'
 };
 
+/**
+ * Initializes the solar system simulation.
+ */
 function init() {
     // Scene setup
     scene = new THREE.Scene();
@@ -111,6 +114,9 @@ function init() {
     animate();
 }
 
+/**
+ * Handles window resize events to adjust camera and renderer.
+ */
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -118,6 +124,9 @@ function onWindowResize() {
     composer.setSize(window.innerWidth, window.innerHeight);
 }
 
+/**
+ * Animation loop for the simulation.
+ */
 function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta() * speedMultiplier;
@@ -141,6 +150,9 @@ function animate() {
     composer.render();
 }
 
+/**
+ * Sets up post-processing effects.
+ */
 function setupPostProcessing() {
     composer = new EffectComposer(renderer);
 
@@ -159,6 +171,9 @@ function setupPostProcessing() {
 
 init();
 
+/**
+ * Sets up keyboard controls for planet selection.
+ */
 function setupKeyboardControls() {
     document.addEventListener('keydown', (event) => {
         const key = event.key;
@@ -170,11 +185,18 @@ function setupKeyboardControls() {
     });
 }
 
+/**
+ * Sets up mouse controls for planet interaction.
+ */
 function setupMouseControls() {
     renderer.domElement.addEventListener('click', onMouseClick);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
 }
 
+/**
+ * Handles mouse click events for planet selection.
+ * @param {*} event 
+ */
 function onMouseClick(event) {
     
     const rect = renderer.domElement.getBoundingClientRect();
@@ -201,6 +223,10 @@ function onMouseClick(event) {
     }
 }
 
+/**
+ * Handles mouse move events for planet interaction.
+ * @param {*} event 
+ */
 function onMouseMove(event) {
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -224,6 +250,11 @@ function onMouseMove(event) {
     }
 }
 
+/**
+ * Focuses the camera on a specific planet.
+ * @param {*} planetName 
+ * @returns 
+ */
 function focusCameraOnPlanet(planetName) {
     const planetGroup = planetsGroup.getObjectByName(`${planetName}Group`);
     if (!planetGroup) {
@@ -264,6 +295,11 @@ function focusCameraOnPlanet(planetName) {
     animateCameraToTarget(cameraPosition, planetPosition);
 }
 
+/**
+ * Animates the camera to a target position.
+ * @param {*} cameraPosition 
+ * @param {*} lookAtPosition 
+ */
 function animateCameraToTarget(cameraPosition, lookAtPosition) {
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
@@ -289,12 +325,18 @@ function animateCameraToTarget(cameraPosition, lookAtPosition) {
     requestAnimationFrame(animateCamera);
 }
 
+/**
+ * Resets the camera to its original position and target.
+ */
 function resetCamera() {
     const originalPosition = new THREE.Vector3(0, 10, 30);
     const originalTarget = new THREE.Vector3(0, 0, 0);
     animateCameraToTarget(originalPosition, originalTarget);
 }
 
+/** 
+ * Sets up the reset button functionality.
+ */
 function setupResetButton() {
     const resetButton = document.getElementById('reset');
     if (resetButton) {
@@ -302,6 +344,9 @@ function setupResetButton() {
     }
 }
 
+/** 
+ * Sets up the speed control slider functionality.
+ */
 function setupSpeedControl() {
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
