@@ -381,6 +381,9 @@ export class PlanetSystem {
         canvas.width = 512;
         canvas.height = 128;
         
+        // Clear canvas with transparent background
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
         context.font = 'bold 36px Arial';
         context.fillStyle = 'white';
         context.strokeStyle = 'black';
@@ -398,12 +401,15 @@ export class PlanetSystem {
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
-            opacity: 0
+            opacity: 0,
+            alphaTest: 0.1,
+            depthTest: false,
+            depthWrite: false
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
-        const scale = 1.5;
-        sprite.scale.set(scale * 3, scale * 0.75, 1);
+        const moonScale = 1.5;
+        sprite.scale.set(moonScale * 3, moonScale * 0.75, 1);
 
         sprite.position.set(0, 0.67, 0);
         sprite.name = 'Earth\'s MoonLabel';
@@ -460,6 +466,9 @@ export class PlanetSystem {
         canvas.width = 512;
         canvas.height = 128;
         
+        // Clear canvas with transparent background
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
         context.font = 'bold 48px Arial';
         context.fillStyle = 'white';
         context.strokeStyle = 'black';
@@ -477,14 +486,17 @@ export class PlanetSystem {
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
-            opacity: 0
+            opacity: 0,
+            alphaTest: 0.1,
+            depthTest: false,
+            depthWrite: false
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
         
 
-        const scale = Math.max(planet.size * 1.5, 2.0);
-        sprite.scale.set(scale * 3, scale * 0.75, 1);
+        const planetScale = Math.max(planet.size * 1.5, 2.0);
+        sprite.scale.set(planetScale * 3, planetScale * 0.75, 1);
 
         sprite.position.set(
             planet.position.x,

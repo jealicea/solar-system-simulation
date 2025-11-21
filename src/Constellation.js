@@ -330,6 +330,9 @@ export class Constellation {
         canvas.width = 512;
         canvas.height = 128;
         
+        // Clear canvas with transparent background
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
         context.font = 'bold 48px Arial';
         context.fillStyle = 'white';
         context.strokeStyle = 'black';
@@ -347,7 +350,10 @@ export class Constellation {
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
-            opacity: 0
+            opacity: 0,
+            alphaTest: 0.1,
+            depthTest: false,
+            depthWrite: false
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
