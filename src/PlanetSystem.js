@@ -402,13 +402,10 @@ export class PlanetSystem {
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
-        
-        // Scale for moon size (smaller than planet labels)
         const scale = 1.5;
         sprite.scale.set(scale * 3, scale * 0.75, 1);
 
-        // Position above the moon
-        sprite.position.set(0, 0.67, 0); // Relative to moon position (moon size 0.27 + 0.4 offset)
+        sprite.position.set(0, 0.67, 0);
         sprite.name = 'Earth\'s MoonLabel';
         
         return sprite;

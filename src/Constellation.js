@@ -216,6 +216,7 @@ export class Constellation {
         this.constellationLines = new Map();
         this.constellationLabels = new Map();
         this.constellationGlows = new Map();
+        this.constellationColliders = new Map();
         this.showLines = true;
         this.showLabels = true;
         this.activeConstellation = null;
@@ -230,7 +231,6 @@ export class Constellation {
         group.name = 'ConstellationSystem';
         
         this.constellations.forEach(constellation => {
-            // Create a group for each constellation
             const constellationGroup = new THREE.Group();
             constellationGroup.name = `${constellation.name}Group`;
             
@@ -245,20 +245,22 @@ export class Constellation {
             
             // Create constellation label
             const label = this.createConstellationLabel(constellation);
-            label.visible = this.showLabels; // Show based on showLabels setting
+            label.visible = this.showLabels;
             constellationGroup.add(label);
             this.constellationLabels.set(constellation.name, label);
             
-            // Create constellation glow (initially hidden)
+            // Create constellation glow effect
             const glow = this.createConstellationGlow(constellation);
             constellationGroup.add(glow);
             this.constellationGlows.set(constellation.name, glow);
             glow.visible = false;
             
-            // Store the constellation group
-            this.constellationGroups.set(constellation.name, constellationGroup);
+            // Create clickable collision object for the constellation
+            const collider = this.createConstellationCollider(constellation);
+            constellationGroup.add(collider);
+            this.constellationColliders.set(constellation.name, collider);
             
-            // Add the constellation group to the main group
+            this.constellationGroups.set(constellation.name, constellationGroup);
             group.add(constellationGroup);
         });
         
@@ -357,7 +359,6 @@ export class Constellation {
         const sprite = new THREE.Sprite(spriteMaterial);
         sprite.scale.set(20, 5, 1);
         
-        // Position label at the center of constellation stars
         const avgX = constellation.stars.reduce((sum, star) => sum + star.x, 0) / constellation.stars.length;
         const avgY = constellation.stars.reduce((sum, star) => sum + star.y, 0) / constellation.stars.length;
         const avgZ = constellation.stars.reduce((sum, star) => sum + star.z, 0) / constellation.stars.length;
@@ -378,7 +379,6 @@ export class Constellation {
         glowGroup.name = `${constellation.name}Glow`;
         
         constellation.stars.forEach((star) => {
-            // Create larger, glowing sphere around each star
             const glowGeometry = new THREE.SphereGeometry(1.5 * star.brightness, 16, 12);
             const glowMaterial = new THREE.MeshBasicMaterial({
                 color: 0x4a90e2,
@@ -408,31 +408,53 @@ export class Constellation {
     }
 
     /**
+     * Creates an invisible collision object for constellation clicking.
+     * @param {Object} constellation - The constellation data.
+     * @returns {THREE.Mesh} The collision mesh for the constellation.
+     */
+    createConstellationCollider(constellation) {
+        const positions = constellation.stars.map(star => new THREE.Vector3(star.x, star.y, star.z));
+        const box = new THREE.Box3().setFromPoints(positions);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        
+        const radius = Math.max(size.x, size.y, size.z) * 0.8;
+        const colliderGeometry = new THREE.SphereGeometry(radius, 16, 12);
+        const colliderMaterial = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0,
+            visible: false;
+        });
+        
+        const colliderMesh = new THREE.Mesh(colliderGeometry, colliderMaterial);
+        colliderMesh.position.copy(center);
+        colliderMesh.name = `${constellation.name}Collider`;
+        colliderMesh.userData = {
+            isConstellationCollider: true,
+            constellationName: constellation.name
+        };
+        
+        return colliderMesh;
+    }
+
+    /**
      * Toggles the label and glow for a specific constellation.
      * @param {string} constellationName - The name of the constellation.
      */
     toggleConstellationFocus(constellationName) {
-        console.log('Toggling constellation focus for:', constellationName); // Debug log
-        
-        // Hide previous active constellation
         if (this.activeConstellation) {
             const prevLabel = this.constellationLabels.get(this.activeConstellation);
             const prevGlow = this.constellationGlows.get(this.activeConstellation);
             if (prevLabel) {
                 prevLabel.visible = false;
-                console.log('Hiding previous label for:', this.activeConstellation);
             }
             if (prevGlow) {
                 prevGlow.visible = false;
-                console.log('Hiding previous glow for:', this.activeConstellation);
             }
         }
         
-        // Show current constellation or hide if it's the same
         if (this.activeConstellation === constellationName) {
             this.activeConstellation = null;
-            console.log('Deselecting constellation:', constellationName);
-            // Return to general label visibility setting
             const label = this.constellationLabels.get(constellationName);
             if (label) {
                 label.visible = this.showLabels;
@@ -442,16 +464,10 @@ export class Constellation {
             const label = this.constellationLabels.get(constellationName);
             const glow = this.constellationGlows.get(constellationName);
             if (label) {
-                label.visible = true; // Always show when actively focused
-                console.log('Showing label for:', constellationName);
-            } else {
-                console.log('Label not found for:', constellationName);
+                label.visible = true;
             }
             if (glow) {
                 glow.visible = true;
-                console.log('Showing glow for:', constellationName);
-            } else {
-                console.log('Glow not found for:', constellationName);
             }
         }
     }
@@ -478,10 +494,10 @@ export class Constellation {
      * @returns {number} The color value.
      */
     getStarColor(brightness) {
-        if (brightness > 0.9) return 0xffffff; // Bright white
-        if (brightness > 0.7) return 0xffffaa; // Slightly yellow
-        if (brightness > 0.5) return 0xffddaa; // More yellow
-        return 0xffccaa; // Orange-ish
+        if (brightness > 0.9) return 0xffffff;
+        if (brightness > 0.7) return 0xffffaa;
+        if (brightness > 0.5) return 0xffddaa;
+        return 0xffccaa;
     }
 
     /**
@@ -492,7 +508,7 @@ export class Constellation {
         this.constellationLines.forEach(linesGroup => {
             linesGroup.visible = this.showLines;
         });
-        return this.showLines; // Return the new state
+        return this.showLines;
     }
 
     /**
@@ -501,7 +517,6 @@ export class Constellation {
     toggleLabels() {
         this.showLabels = !this.showLabels;
         this.constellationLabels.forEach((label, constellationName) => {
-            // Only show general labels if not actively focused
             if (this.activeConstellation !== constellationName) {
                 label.visible = this.showLabels;
             }
@@ -529,11 +544,22 @@ export class Constellation {
     }
 
     /**
+     * Gets all constellation collider objects for click detection.
+     * @returns {THREE.Mesh[]} Array of constellation collider meshes.
+     */
+    getConstellationColliders() {
+        return Array.from(this.constellationColliders.values());
+    }
+
+    /**
      * Update method for animation (constellations are typically static).
      */
     update() {
-        // Constellations are typically static, but you could add subtle animations here
-        // For example, twinkling stars or slow rotation
+        this.constellations.forEach(constellation => {
+            constellation.stars.forEach(star => {
+                star.mesh.rotation.y += 0.01;
+            });
+        });
     }
 
     /**
@@ -549,5 +575,11 @@ export class Constellation {
                 }
             });
         });
+        
+        this.constellationGroups.clear();
+        this.constellationLines.clear();
+        this.constellationLabels.clear();
+        this.constellationGlows.clear();
+        this.constellationColliders.clear();
     }
 }

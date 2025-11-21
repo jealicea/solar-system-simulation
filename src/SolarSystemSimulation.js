@@ -253,9 +253,14 @@ function onMouseClick(event) {
     }
 
     
-    // Check for constellation clicks
+    // Check for constellation clicks (using both colliders and individual stars)
     const constellationObjects = [];
-    if (constellationGroup) {
+    if (constellationGroup && constellationSystem) {
+        // Add constellation colliders for easier clicking on constellation areas
+        const colliders = constellationSystem.getConstellationColliders();
+        constellationObjects.push(...colliders);
+        
+        // Also add individual stars for precise clicking
         constellationGroup.traverse((child) => {
             if (child.isMesh && child.userData && child.userData.isConstellationStar) {
                 constellationObjects.push(child);
@@ -265,8 +270,15 @@ function onMouseClick(event) {
     
     const constellationIntersects = raycaster.intersectObjects(constellationObjects);
     if (constellationIntersects.length > 0) {
-        const clickedStar = constellationIntersects[0].object;
-        const constellationName = clickedStar.userData.constellationName;
+        const clickedObject = constellationIntersects[0].object;
+        let constellationName;
+        
+        // Check if it's a collider or a star
+        if (clickedObject.userData.isConstellationCollider) {
+            constellationName = clickedObject.userData.constellationName;
+        } else if (clickedObject.userData.isConstellationStar) {
+            constellationName = clickedObject.userData.constellationName;
+        }
         
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
@@ -300,9 +312,14 @@ function onMouseMove(event) {
         return;
     }
     
-    // Check for constellation hover
+    // Check for constellation hover (including colliders and stars)
     const constellationObjects = [];
-    if (constellationGroup) {
+    if (constellationGroup && constellationSystem) {
+        // Add constellation colliders for easier hovering over constellation areas
+        const colliders = constellationSystem.getConstellationColliders();
+        constellationObjects.push(...colliders);
+        
+        // Also add individual stars for precise hovering
         constellationGroup.traverse((child) => {
             if (child.isMesh && child.userData && child.userData.isConstellationStar) {
                 constellationObjects.push(child);
