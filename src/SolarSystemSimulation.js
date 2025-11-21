@@ -9,6 +9,7 @@ import { Starfield } from './Starfield.js';
 import { PlanetSystem } from './PlanetSystem.js';
 import { AsteroidBelt } from './AsteroidBelt.js';
 import { Constellation } from './Constellation.js';
+import starsTexture from './assets/textures/stars.jpg';
 import { SpaceShuttle } from './SpaceShuttle.js';
 
 let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup, constellationSystem, constellationGroup, spaceShuttle;
@@ -47,7 +48,24 @@ const planetKeyMap = {
 function init() {
     // Scene setup
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    
+    // Create 3D spherical background that wraps around everything
+    const textureLoader = new THREE.TextureLoader();
+    const starsBackground = textureLoader.load(starsTexture);
+    
+    // Create large sphere geometry for 3D background
+    const skyboxRadius = 800; // Large enough to encompass constellations
+    const skyboxGeometry = new THREE.SphereGeometry(skyboxRadius, 64, 32);
+    const skyboxMaterial = new THREE.MeshBasicMaterial({
+        map: starsBackground,
+        side: THREE.BackSide, // Render inside faces
+        transparent: true,
+        opacity: 1.0
+    });
+    
+    const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+    skybox.name = 'StarsSkybox';
+    scene.add(skybox);
 
     // Camera setup
     camera = new THREE.PerspectiveCamera(
@@ -67,6 +85,9 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.toneMappingExposure = 2.0;
+    
+    // Set clear color to transparent so stars background shows through
+    renderer.setClearColor(0x000000, 0);
 
     // Post-processing setup
     setupPostProcessing();

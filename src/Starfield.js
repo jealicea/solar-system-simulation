@@ -44,10 +44,10 @@ export class Starfield {
         
         const starMaterial = new THREE.PointsMaterial({
             vertexColors: true,
-            size: 1.5,
+            size: 2.0,
             sizeAttenuation: true,
             transparent: true,
-            opacity: 0.8,
+            opacity: 0.7,
             blending: THREE.AdditiveBlending
         });
         
