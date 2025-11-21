@@ -9,6 +9,7 @@ import saturnTexture from './assets/textures/Saturn.jpg';
 import saturnRingTexture from './assets/textures/SaturnsRing.png';
 import uranusTexture from './assets/textures/Uranus.jpg';
 import neptuneTexture from './assets/textures/Neptune.jpg';
+import earthMoonTexture from './assets/textures/Moon.jpg';
 
 const planetsData = [
     {
@@ -179,6 +180,12 @@ export class PlanetSystem {
                 planetGroup.add(rings);
             }
             
+            // Add Earth's moon if this is Earth
+            if (planet.name === 'Earth') {
+                const moon = this.createEarthMoon();
+                planetGroup.add(moon);
+            }
+            
             // Add the planet group to the main group
             group.add(planetGroup);
             
@@ -312,6 +319,99 @@ export class PlanetSystem {
         ringMesh.name = 'SaturnRings';
         
         return ringMesh;
+    }
+
+    /**
+     * Creates Earth's moon and adds it to the Earth group.
+     * @returns {THREE.Group} The group containing the moon.
+     */
+    createEarthMoon() {
+        const moonGroup = new THREE.Group();
+        
+        // Moon properties
+        const moonSize = 0.27;
+        const moonOrbitRadius = 2.5;
+        
+        // Create moon geometry and material
+        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
+        const moonTexture = this.textureLoader.load(earthMoonTexture);
+        const moonMaterial = new THREE.MeshPhongMaterial({ 
+            map: moonTexture 
+        });
+        
+        // Create moon mesh
+        const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+        moonMesh.name = 'EarthMoon';
+        moonMesh.position.set(moonOrbitRadius, 0, 0); // Position relative to Earth
+        
+        // Add moon to the moon group
+        moonGroup.add(moonMesh);
+        moonGroup.name = 'MoonGroup';
+        
+        // Create and add label for the moon
+        const moonLabel = this.createMoonLabel();
+        moonGroup.add(moonLabel);
+        this.planetLabels.set('Earth\'s Moon', moonLabel);
+        
+        // Store moon mesh for animation updates
+        this.planetMeshes.set('EarthMoon', moonMesh);
+        this.orbitAngles.set('EarthMoon', 0);
+        
+        // Add moon data for update animation
+        this.planets.push({
+            name: 'EarthMoon',
+            size: moonSize,
+            orbitRadius: moonOrbitRadius,
+            orbitSpeed: 0.1,
+            rotationSpeed: 0.01,
+            axialTilt: 6.68 * Math.PI / 180
+        });
+        
+        return moonGroup;
+    }
+
+    /**
+     * Creates the label sprite for Earth's moon.
+     * @returns {THREE.Sprite} The sprite representing the moon's label.
+     */
+    createMoonLabel() {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        canvas.width = 512;
+        canvas.height = 128;
+        
+        context.font = 'bold 36px Arial';
+        context.fillStyle = 'white';
+        context.strokeStyle = 'black';
+        context.lineWidth = 4;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        
+        const text = 'Earth\'s Moon';
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 0
+        });
+        
+        const sprite = new THREE.Sprite(spriteMaterial);
+        
+        // Scale for moon size (smaller than planet labels)
+        const scale = 1.5;
+        sprite.scale.set(scale * 3, scale * 0.75, 1);
+
+        // Position above the moon
+        sprite.position.set(0, 0.67, 0); // Relative to moon position (moon size 0.27 + 0.4 offset)
+        sprite.name = 'Earth\'s MoonLabel';
+        
+        return sprite;
     }
 
     /**
@@ -456,20 +556,40 @@ export class PlanetSystem {
      */
     updateLabels(camera) {
         this.planetLabels.forEach((label, planetName) => {
-            const planet = this.planets.find(p => p.name === planetName);
-            if (planet && label.material.opacity > 0) {
-                const planetMesh = this.planetMeshes.get(planetName);
-                if (planetMesh) {
-                    label.position.set(
-                        planetMesh.position.x,
-                        planetMesh.position.y + planet.size + 1,
-                        planetMesh.position.z
-                    );
-                    
-                    const distance = camera.position.distanceTo(label.position);
-                    const scale = Math.max(planet.size * 1.5, 2.0);
-                    const scaleFactor = Math.min(distance / 15, 2.0);
-                    label.scale.set(scale * 3 * scaleFactor, scale * 0.75 * scaleFactor, 1);
+            if (label.material.opacity > 0) {
+                if (planetName === 'Earth\'s Moon') {
+                    // Handle moon label positioning
+                    const moonMesh = this.planetMeshes.get('EarthMoon');
+                    if (moonMesh) {
+                        label.position.set(
+                            moonMesh.position.x,
+                            moonMesh.position.y + 0.27 + 0.4, // Moon size + smaller offset
+                            moonMesh.position.z
+                        );
+                        
+                        const distance = camera.position.distanceTo(label.position);
+                        const scale = 1.5;
+                        const scaleFactor = Math.min(distance / 15, 2.0);
+                        label.scale.set(scale * 3 * scaleFactor, scale * 0.75 * scaleFactor, 1);
+                    }
+                } else {
+                    // Handle regular planet labels
+                    const planet = this.planets.find(p => p.name === planetName);
+                    if (planet) {
+                        const planetMesh = this.planetMeshes.get(planetName);
+                        if (planetMesh) {
+                            label.position.set(
+                                planetMesh.position.x,
+                                planetMesh.position.y + planet.size + 1,
+                                planetMesh.position.z
+                            );
+                            
+                            const distance = camera.position.distanceTo(label.position);
+                            const scale = Math.max(planet.size * 1.5, 2.0);
+                            const scaleFactor = Math.min(distance / 15, 2.0);
+                            label.scale.set(scale * 3 * scaleFactor, scale * 0.75 * scaleFactor, 1);
+                        }
+                    }
                 }
             }
         });
@@ -491,8 +611,22 @@ export class PlanetSystem {
                 currentAngle += planet.orbitSpeed * deltaTime;
                 this.orbitAngles.set(planet.name, currentAngle);
 
-                const newX = Math.cos(currentAngle) * planet.orbitRadius;
-                const newZ = Math.sin(currentAngle) * planet.orbitRadius;
+                let newX, newZ;
+                
+                if (planet.name === 'EarthMoon') {
+                    // Moon orbits around Earth, not the Sun
+                    const earthMesh = this.planetMeshes.get('Earth');
+                    if (earthMesh) {
+                        newX = earthMesh.position.x + Math.cos(currentAngle) * planet.orbitRadius;
+                        newZ = earthMesh.position.z + Math.sin(currentAngle) * planet.orbitRadius;
+                    } else {
+                        return;
+                    }
+                } else {
+                    // Regular planets orbit around the Sun
+                    newX = Math.cos(currentAngle) * planet.orbitRadius;
+                    newZ = Math.sin(currentAngle) * planet.orbitRadius;
+                }
 
                 planetMesh.position.set(newX, 0, newZ);
 
@@ -511,9 +645,11 @@ export class PlanetSystem {
                         }
                     }
 
-
-                    planet.position.x = newX;
-                    planet.position.z = newZ;
+                    // Update planet position data (except for moon which is relative to Earth)
+                    if (planet.name !== 'EarthMoon') {
+                        planet.position.x = newX;
+                        planet.position.z = newZ;
+                    }
                 }
             }
         });
