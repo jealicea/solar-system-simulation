@@ -20,7 +20,6 @@ function raDecToCartesian(ra, dec, radius = CELESTIAL_RADIUS) {
 const constellationData = [
     {
         name: 'Aries',
-        symbol: '♈',
         stars: [
             { name: 'Hamal', ...raDecToCartesian(2.12, 23.5), brightness: 1.0 },
             { name: 'Sheratan', ...raDecToCartesian(1.91, 20.8), brightness: 0.8 },
@@ -31,7 +30,6 @@ const constellationData = [
     },
     {
         name: 'Taurus',
-        symbol: '♉',
         stars: [
             { name: 'Aldebaran', ...raDecToCartesian(4.60, 16.5), brightness: 1.0 },
             { name: 'Elnath', ...raDecToCartesian(5.44, 28.6), brightness: 0.9 },
@@ -43,7 +41,6 @@ const constellationData = [
     },
     {
         name: 'Gemini',
-        symbol: '♊',
         stars: [
             { name: 'Castor', ...raDecToCartesian(7.58, 31.9), brightness: 1.0 },
             { name: 'Pollux', ...raDecToCartesian(7.75, 28.0), brightness: 0.95 },
@@ -55,7 +52,6 @@ const constellationData = [
     },
     {
         name: 'Cancer',
-        symbol: '♋',
         stars: [
             { name: 'Altarf', ...raDecToCartesian(8.16, 9.2), brightness: 0.8 },
             { name: 'Acubens', ...raDecToCartesian(8.78, 11.9), brightness: 0.7 },
@@ -66,7 +62,6 @@ const constellationData = [
     },
     {
         name: 'Leo',
-        symbol: '♌',
         stars: [
             { name: 'Regulus', ...raDecToCartesian(10.14, 11.9), brightness: 1.0 },
             { name: 'Algieba', ...raDecToCartesian(10.33, 19.8), brightness: 0.9 },
@@ -78,7 +73,6 @@ const constellationData = [
     },
     {
         name: 'Virgo',
-        symbol: '♍',
         stars: [
             { name: 'Spica', ...raDecToCartesian(13.42, -11.2), brightness: 1.0 },
             { name: 'Zavijava', ...raDecToCartesian(11.84, 1.8), brightness: 0.8 },
@@ -90,7 +84,6 @@ const constellationData = [
     },
     {
         name: 'Libra',
-        symbol: '♎',
         stars: [
             { name: 'Zubeneschamali', ...raDecToCartesian(14.85, -9.4), brightness: 0.9 },
             { name: 'Zubenelgenubi', ...raDecToCartesian(14.85, -16.0), brightness: 0.8 },
@@ -101,7 +94,6 @@ const constellationData = [
     },
     {
         name: 'Scorpio',
-        symbol: '♏',
         stars: [
             { name: 'Antares', ...raDecToCartesian(16.49, -26.4), brightness: 1.0 },
             { name: 'Shaula', ...raDecToCartesian(17.56, -37.1), brightness: 0.9 },
@@ -113,7 +105,6 @@ const constellationData = [
     },
     {
         name: 'Sagittarius',
-        symbol: '♐',
         stars: [
             { name: 'Kaus Australis', ...raDecToCartesian(18.40, -34.4), brightness: 1.0 },
             { name: 'Nunki', ...raDecToCartesian(18.92, -26.3), brightness: 0.9 },
@@ -125,7 +116,6 @@ const constellationData = [
     },
     {
         name: 'Capricorn',
-        symbol: '♑',
         stars: [
             { name: 'Deneb Algedi', ...raDecToCartesian(21.78, -16.1), brightness: 0.9 },
             { name: 'Dabih', ...raDecToCartesian(20.35, -14.8), brightness: 0.8 },
@@ -136,7 +126,6 @@ const constellationData = [
     },
     {
         name: 'Aquarius',
-        symbol: '♒',
         stars: [
             { name: 'Sadalsuud', ...raDecToCartesian(21.52, -5.6), brightness: 0.9 },
             { name: 'Sadalmelik', ...raDecToCartesian(22.10, -0.3), brightness: 0.8 },
@@ -147,7 +136,6 @@ const constellationData = [
     },
     {
         name: 'Pisces',
-        symbol: '♓',
         stars: [
             { name: 'Alrisha', ...raDecToCartesian(2.03, 2.8), brightness: 0.8 },
             { name: 'Fum al Samakah', ...raDecToCartesian(23.28, 6.4), brightness: 0.7 },
@@ -158,7 +146,6 @@ const constellationData = [
     },
     {
         name: 'Ursa Major (Big Dipper)',
-        symbol: '🐻',
         stars: [
             { name: 'Dubhe', ...raDecToCartesian(11.06, 61.8), brightness: 1.0 },
             { name: 'Merak', ...raDecToCartesian(11.01, 56.4), brightness: 0.9 },
@@ -172,7 +159,6 @@ const constellationData = [
     },
     {
         name: 'Ursa Minor (Little Dipper)',
-        symbol: '🐻‍❄️',
         stars: [
             { name: 'Polaris', ...raDecToCartesian(2.53, 89.3), brightness: 1.0 },
             { name: 'Kochab', ...raDecToCartesian(14.85, 74.2), brightness: 0.9 },
@@ -186,7 +172,6 @@ const constellationData = [
     },
     {
         name: 'Orion',
-        symbol: '🏹',
         stars: [
             { name: 'Betelgeuse', ...raDecToCartesian(5.92, 7.4), brightness: 1.0 },
             { name: 'Rigel', ...raDecToCartesian(5.24, -8.2), brightness: 1.0 },
@@ -245,7 +230,7 @@ export class Constellation {
             
             // Create constellation label
             const label = this.createConstellationLabel(constellation);
-            label.visible = this.showLabels;
+            label.material.opacity = 0; // Start with hidden labels like planets
             constellationGroup.add(label);
             this.constellationLabels.set(constellation.name, label);
             
@@ -342,22 +327,31 @@ export class Constellation {
     createConstellationLabel(constellation) {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        canvas.width = 256;
-        canvas.height = 64;
+        canvas.width = 512;
+        canvas.height = 128;
         
-        context.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        context.font = 'Bold 24px Arial';
+        context.font = 'bold 48px Arial';
+        context.fillStyle = 'white';
+        context.strokeStyle = 'black';
+        context.lineWidth = 6;
         context.textAlign = 'center';
-        context.fillText(`${constellation.symbol} ${constellation.name}`, 128, 40);
+        context.textBaseline = 'middle';
+        
+        const text = constellation.name;
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
         
         const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
-            transparent: true
+            transparent: true,
+            opacity: 0
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(20, 5, 1);
+        sprite.scale.set(30, 7.5, 1);
         
         const avgX = constellation.stars.reduce((sum, star) => sum + star.x, 0) / constellation.stars.length;
         const avgY = constellation.stars.reduce((sum, star) => sum + star.y, 0) / constellation.stars.length;
@@ -418,7 +412,7 @@ export class Constellation {
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
         
-        const radius = Math.max(size.x, size.y, size.z) * 0.8;
+        const radius = Math.max(size.x, size.y, size.z) * 0.3;
         const colliderGeometry = new THREE.SphereGeometry(radius, 16, 12);
         const colliderMaterial = new THREE.MeshBasicMaterial({
             transparent: true,
@@ -434,6 +428,9 @@ export class Constellation {
             constellationName: constellation.name
         };
         
+        // Make sure this doesn't interfere with orbit controls
+        colliderMesh.layers.set(1); // Put on layer 1 to separate from default layer 0
+        
         return colliderMesh;
     }
 
@@ -446,7 +443,7 @@ export class Constellation {
             const prevLabel = this.constellationLabels.get(this.activeConstellation);
             const prevGlow = this.constellationGlows.get(this.activeConstellation);
             if (prevLabel) {
-                prevLabel.visible = false;
+                prevLabel.material.opacity = 0;
             }
             if (prevGlow) {
                 prevGlow.visible = false;
@@ -455,21 +452,64 @@ export class Constellation {
         
         if (this.activeConstellation === constellationName) {
             this.activeConstellation = null;
-            const label = this.constellationLabels.get(constellationName);
-            if (label) {
-                label.visible = this.showLabels;
-            }
         } else {
             this.activeConstellation = constellationName;
             const label = this.constellationLabels.get(constellationName);
             const glow = this.constellationGlows.get(constellationName);
             if (label) {
-                label.visible = true;
+                label.material.opacity = 1.0;
             }
             if (glow) {
                 glow.visible = true;
             }
         }
+    }
+
+    /**
+     * Shows the label for a specific constellation.
+     * @param {string} constellationName - The name of the constellation.
+     */
+    showLabel(constellationName) {
+        this.hideAllLabels();
+        
+        const label = this.constellationLabels.get(constellationName);
+        if (label) {
+            label.material.opacity = 1.0;
+            this.activeConstellation = constellationName;
+        }
+    }
+
+    /**
+     * Hides the label for a specific constellation.
+     * @param {string} constellationName - The name of the constellation.
+     */
+    hideLabel(constellationName) {
+        const label = this.constellationLabels.get(constellationName);
+        if (label) {
+            label.material.opacity = 0;
+        }
+        if (this.activeConstellation === constellationName) {
+            this.activeConstellation = null;
+        }
+    }
+
+    /**
+     * Hides all constellation labels.
+     */
+    hideAllLabels() {
+        this.constellationLabels.forEach(label => {
+            label.material.opacity = 0;
+        });
+        this.activeConstellation = null;
+    }
+
+    /**
+     * Shows all constellation labels.
+     */
+    showAllLabels() {
+        this.constellationLabels.forEach(label => {
+            label.material.opacity = 1.0;
+        });
     }
 
     /**
@@ -516,11 +556,12 @@ export class Constellation {
      */
     toggleLabels() {
         this.showLabels = !this.showLabels;
-        this.constellationLabels.forEach((label, constellationName) => {
-            if (this.activeConstellation !== constellationName) {
-                label.visible = this.showLabels;
-            }
-        });
+        if (this.showLabels) {
+            this.showAllLabels();
+        } else {
+            this.hideAllLabels();
+        }
+        return this.showLabels;
     }
 
     /**

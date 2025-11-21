@@ -23,6 +23,11 @@ module.exports = {
                 generator: { filename: 'images/[name][ext]', },
             },
             {
+                test: /\.(ico)$/i,
+                type: 'asset/resource',
+                generator: { filename: 'assets/[name][ext]', },
+            },
+            {
                 test: /\.(stl|obj|mtl|gltf|glb)$/i,
                 type: 'asset/resource',
                 generator: { filename: 'models/[name][ext]', },
@@ -37,6 +42,7 @@ module.exports = {
             template: './src/index.html',
             filename: 'index.html',
             chunks: ['final-project'],
+            favicon: './src/assets/mars_space.ico',
         }),
     ],
     devServer: {

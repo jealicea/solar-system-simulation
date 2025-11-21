@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="assets/favicon.png" />
     <title>Solar System Simulation</title>
     <style>
         body {
@@ -51,6 +50,22 @@
             z-index: 100;
         }
         
+        #fps {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            color: #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 100;
+            min-width: 80px;
+            text-align: center;
+        }
+        
         #reset {
             background: #4CAF50;
             color: white;
@@ -87,6 +102,7 @@
             Space : Pause<br>
             <button id="reset">Reset</button>
         </div>
+        <div id="fps">FPS: --</div>
     </div>
     <canvas id="scene"></canvas>
 </body>
