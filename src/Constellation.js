@@ -262,7 +262,7 @@ export class Constellation {
         starsGroup.name = `${constellation.name}Stars`;
         
         constellation.stars.forEach((star) => {
-            const starGeometry = new THREE.SphereGeometry(0.5 * star.brightness, 8, 6);
+            const starGeometry = new THREE.SphereGeometry(1.0 * star.brightness, 8, 6);
             const starMaterial = new THREE.MeshBasicMaterial({
                 color: this.getStarColor(star.brightness),
                 transparent: true,
@@ -418,7 +418,7 @@ export class Constellation {
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
         
-        const radius = Math.max(size.x, size.y, size.z) * 0.3;
+        const radius = Math.max(size.x, size.y, size.z) * 0.6;
         const colliderGeometry = new THREE.SphereGeometry(radius, 16, 12);
         const colliderMaterial = new THREE.MeshBasicMaterial({
             transparent: true,
