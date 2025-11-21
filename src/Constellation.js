@@ -423,7 +423,7 @@ export class Constellation {
         const colliderMaterial = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
-            visible: false;
+            visible: false
         });
         
         const colliderMesh = new THREE.Mesh(colliderGeometry, colliderMaterial);
@@ -549,17 +549,6 @@ export class Constellation {
      */
     getConstellationColliders() {
         return Array.from(this.constellationColliders.values());
-    }
-
-    /**
-     * Update method for animation (constellations are typically static).
-     */
-    update() {
-        this.constellations.forEach(constellation => {
-            constellation.stars.forEach(star => {
-                star.mesh.rotation.y += 0.01;
-            });
-        });
     }
 
     /**

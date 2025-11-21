@@ -106,26 +106,18 @@ function init() {
     controls.enableRotate = true;
     controls.enablePan = true;
 
-    // Set up keyboard and mouse controls
+    // Setup interaction controls
     setupKeyboardControls();
     raycaster = new THREE.Raycaster();
-    raycaster.params.Points.threshold = 2.0; // Increase threshold for easier clicking on small star objects
+    raycaster.params.Points.threshold = 2.0;
     mouse = new THREE.Vector2();
     setupMouseControls();
     
-    // Set up reset button
     setupResetButton();
-    
-    // Set up speed control slider
     setupSpeedControl();
-    
-    // Set up constellation controls
     setupConstellationControls();
-    
-    // Set up GUI controls
     setupGUIControls();
 
-    // Clock setup
     clock = new THREE.Clock();
     window.addEventListener("resize", onWindowResize);
     animate();
@@ -157,10 +149,6 @@ function animate() {
 
     if (asteroidBelt) {
         asteroidBelt.update(delta);
-    }
-
-    if (constellationSystem) {
-        constellationSystem.update(delta);
     }
 
     const ambientIndicator = scene.getObjectByName('ambientLightIndicator');
@@ -200,8 +188,7 @@ function setupKeyboardControls() {
         const key = event.key;
         if (planetKeyMap[key]) {
             const planetName = planetKeyMap[key];
-            
-            // Handle Earth's Moon specially
+
             if (planetName === 'Earth\'s Moon') {
                 planetSystem.toggleLabel('Earth\'s Moon');
                 focusCameraOnPlanet('EarthMoon');
@@ -249,18 +236,15 @@ function onMouseClick(event) {
 
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
-        return; // Exit early if planet was clicked
+        return;
     }
 
     
-    // Check for constellation clicks (using both colliders and individual stars)
     const constellationObjects = [];
     if (constellationGroup && constellationSystem) {
-        // Add constellation colliders for easier clicking on constellation areas
         const colliders = constellationSystem.getConstellationColliders();
         constellationObjects.push(...colliders);
         
-        // Also add individual stars for precise clicking
         constellationGroup.traverse((child) => {
             if (child.isMesh && child.userData && child.userData.isConstellationStar) {
                 constellationObjects.push(child);
@@ -273,7 +257,6 @@ function onMouseClick(event) {
         const clickedObject = constellationIntersects[0].object;
         let constellationName;
         
-        // Check if it's a collider or a star
         if (clickedObject.userData.isConstellationCollider) {
             constellationName = clickedObject.userData.constellationName;
         } else if (clickedObject.userData.isConstellationStar) {
@@ -312,14 +295,11 @@ function onMouseMove(event) {
         return;
     }
     
-    // Check for constellation hover (including colliders and stars)
     const constellationObjects = [];
     if (constellationGroup && constellationSystem) {
-        // Add constellation colliders for easier hovering over constellation areas
         const colliders = constellationSystem.getConstellationColliders();
         constellationObjects.push(...colliders);
         
-        // Also add individual stars for precise hovering
         constellationGroup.traverse((child) => {
             if (child.isMesh && child.userData && child.userData.isConstellationStar) {
                 constellationObjects.push(child);
@@ -344,7 +324,6 @@ function focusCameraOnPlanet(planetName) {
     let planetGroup, planet;
     
     if (planetName === 'EarthMoon') {
-        // Handle Earth's moon focusing
         const earthGroup = planetsGroup.getObjectByName('EarthGroup');
         if (earthGroup) {
             const moonGroup = earthGroup.getObjectByName('MoonGroup');
@@ -353,7 +332,6 @@ function focusCameraOnPlanet(planetName) {
             }
         }
     } else {
-        // Handle regular planet focusing
         planetGroup = planetsGroup.getObjectByName(`${planetName}Group`);
         if (planetGroup) {
             planet = planetGroup.getObjectByName(planetName);
@@ -405,8 +383,7 @@ function focusCameraOnConstellation(constellationName) {
     
     const constellationCenter = constellationSystem.getConstellationCenter(constellationName);
     
-    // Calculate camera distance based on constellation spread
-    const cameraDistance = 50; // Constellations are far away, so we need more distance
+    const cameraDistance = 50;
     
     const cameraPosition = new THREE.Vector3(
         constellationCenter.x + cameraDistance * 0.7,
