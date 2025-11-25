@@ -79,7 +79,7 @@ function init() {
     scene.add(ambientLight);
     
     // Point light at the sun's position to simulate sunlight
-    const sunLight = new THREE.PointLight(0xffffff, 2, 200);
+    const sunLight = new THREE.PointLight(0xffffff, 100, 200);
     sunLight.position.set(0, 0, 0);
     scene.add(sunLight);
     
