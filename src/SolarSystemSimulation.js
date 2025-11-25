@@ -17,6 +17,7 @@ let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, astero
 let composer, bloomPass;
 let raycaster, mouse;
 let speedMultiplier = 1.0;
+let isPaused = false;
 let gui;
 let skybox = null;
 let starfield = null;
@@ -172,7 +173,7 @@ function onWindowResize() {
  */
 function animate() {
     requestAnimationFrame(animate);
-    const delta = clock.getDelta() * speedMultiplier;
+    const delta = isPaused ? 0 : clock.getDelta() * speedMultiplier;
 
     // Calculate FPS
     const currentTime = performance.now();
@@ -258,6 +259,13 @@ function setupKeyboardControls() {
     // Handle keydown events
     document.addEventListener('keydown', (event) => {
         const key = event.key.toLowerCase();
+        
+        // Handle space bar to toggle pause
+        if (event.key === ' ' || event.code === 'Space') {
+            event.preventDefault(); // Prevent default space bar behavior (page scrolling)
+            isPaused = !isPaused;
+            return;
+        }
         
         // Handle escape key to stop following
         if (event.key === 'Escape') {
