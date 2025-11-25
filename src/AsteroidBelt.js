@@ -20,8 +20,8 @@ export class AsteroidBelt {
         const innerRadius = 23;
         const outerRadius = 32;
         const asteroidCount = 9500;
-        const minSize = 0.02;
-        const maxSize = 0.15;
+        const minSize = 0.01;
+        const maxSize = 0.4;
 
         for (let i = 0; i < asteroidCount; i++) {
             const asteroid = this.createAsteroid(innerRadius, outerRadius, minSize, maxSize);
@@ -51,9 +51,9 @@ export class AsteroidBelt {
         
         const material = new THREE.MeshPhongMaterial({ 
             color: new THREE.Color().setHSL(
-                Math.random() * 0.1,
-                0.2 + Math.random() * 0.3,
-                0.1 + Math.random() * 0.3
+                0,
+                0,
+                0.2 + Math.random() * 0.4
             ),
             shininess: 5
         });

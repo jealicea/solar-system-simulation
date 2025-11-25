@@ -120,7 +120,7 @@ function init() {
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.maxDistance = 2000;
+    controls.maxDistance = 500;
     controls.minDistance = 1;
     controls.dampingFactor = 0.05;
     controls.enableZoom = true;
