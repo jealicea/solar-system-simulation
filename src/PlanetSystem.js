@@ -3,6 +3,7 @@ import sunTexture from './assets/textures/Sun.jpg';
 import mercuryTexture from './assets/textures/Mercury.jpg';
 import venusTexture from './assets/textures/Venus.jpg';
 import earthTexture from './assets/textures/Earth.jpg';
+import earthCloudsTexture from './assets/textures/EarthClouds.jpg';
 import marsTexture from './assets/textures/Mars.jpg';
 import jupiterTexture from './assets/textures/Jupiter.jpg';
 import saturnTexture from './assets/textures/Saturn.jpg';
@@ -216,6 +217,44 @@ export class PlanetSystem {
                 emissive: new THREE.Color(0xffaa00),
                 emissiveIntensity: 1.0
             });
+        } else if (planet.name === 'Earth') {
+            // Create special Earth material with clouds overlay
+            const earthTextureMap = this.textureLoader.load(planet.texture);
+            const cloudsTextureMap = this.textureLoader.load(earthCloudsTexture);
+            
+            // Create the main Earth mesh
+            material = new THREE.MeshPhongMaterial({ map: earthTextureMap });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(0, 0, 0); // Position relative to group
+            mesh.name = planet.name;
+            mesh.rotation.z = planet.axialTilt;
+            
+            // Create the clouds mesh as a larger sphere to hover above Earth
+            const cloudsGeometry = new THREE.SphereGeometry(planet.size * 1.02, 32, 32);
+            const cloudsMaterial = new THREE.MeshPhongMaterial({
+                map: cloudsTextureMap,
+                transparent: true,
+                opacity: 0.6,
+                depthWrite: false
+            });
+            
+            const cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+            cloudsMesh.position.set(0, 0, 0); // Position relative to group
+            cloudsMesh.name = 'EarthClouds';
+            cloudsMesh.rotation.z = planet.axialTilt;
+            
+            // Create a group to hold both Earth and clouds
+            const earthGroup = new THREE.Group();
+            earthGroup.position.set(planet.position.x, planet.position.y, planet.position.z);
+            earthGroup.add(mesh);
+            earthGroup.add(cloudsMesh);
+            earthGroup.name = 'EarthWithClouds';
+            
+            // Store the group in planetMeshes so it can be moved during orbital motion
+            this.planetMeshes.set(planet.name, earthGroup);
+            
+            return earthGroup;
         } else if (planet.texture) {
             const planetTexture = this.textureLoader.load(planet.texture);
             material = new THREE.MeshPhongMaterial({ map: planetTexture });
@@ -599,11 +638,22 @@ export class PlanetSystem {
                     if (planet) {
                         const planetMesh = this.planetMeshes.get(planetName);
                         if (planetMesh) {
-                            label.position.set(
-                                planetMesh.position.x,
-                                planetMesh.position.y + planet.size + 1,
-                                planetMesh.position.z
-                            );
+                            let labelX, labelY, labelZ;
+                            
+                            // Handle Earth specially since it's now a group
+                            if (planetName === 'Earth' && planetMesh.type === 'Group') {
+                                // For Earth group, use the group position
+                                labelX = planetMesh.position.x;
+                                labelY = planetMesh.position.y + planet.size + 1;
+                                labelZ = planetMesh.position.z;
+                            } else {
+                                // For other planets, use mesh position directly
+                                labelX = planetMesh.position.x;
+                                labelY = planetMesh.position.y + planet.size + 1;
+                                labelZ = planetMesh.position.z;
+                            }
+                            
+                            label.position.set(labelX, labelY, labelZ);
                             
                             const distance = camera.position.distanceTo(label.position);
                             const scale = Math.max(planet.size * 1.5, 2.0);
@@ -625,7 +675,27 @@ export class PlanetSystem {
             const planetMesh = this.planetMeshes.get(planet.name);
             if (!planetMesh) return;
 
-            planetMesh.rotation.y += planet.rotationSpeed * deltaTime;
+            // Handle Earth with clouds specially
+            if (planet.name === 'Earth') {
+                // If it's a group (Earth with clouds), rotate both the Earth and clouds
+                if (planetMesh.type === 'Group') {
+                    const earthMesh = planetMesh.getObjectByName('Earth');
+                    const cloudsMesh = planetMesh.getObjectByName('EarthClouds');
+                    
+                    if (earthMesh) {
+                        earthMesh.rotation.y += planet.rotationSpeed * deltaTime;
+                    }
+                    if (cloudsMesh) {
+                        // Clouds rotate slightly faster to create movement effect
+                        cloudsMesh.rotation.y += planet.rotationSpeed * deltaTime * 1.2;
+                    }
+                } else {
+                    // Fallback for single mesh
+                    planetMesh.rotation.y += planet.rotationSpeed * deltaTime;
+                }
+            } else {
+                planetMesh.rotation.y += planet.rotationSpeed * deltaTime;
+            }
 
             if (planet.name !== 'Sun' && planet.orbitRadius > 0) {
                 let currentAngle = this.orbitAngles.get(planet.name);

@@ -299,7 +299,12 @@ function onMouseClick(event) {
 
     if (intersects.length > 0) {
         const clickedPlanet = intersects[0].object;
-        const planetName = clickedPlanet.name;
+        let planetName = clickedPlanet.name;
+        
+        // Handle Earth clouds - if user clicks on clouds, treat as Earth click
+        if (planetName === 'EarthClouds') {
+            planetName = 'Earth';
+        }
 
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
@@ -424,6 +429,12 @@ function focusCameraOnPlanet(planetName) {
             if (moonGroup) {
                 planet = moonGroup.getObjectByName('EarthMoon');
             }
+        }
+    } else if (planetName === 'Earth') {
+        // Handle Earth specially - it's now a group called EarthWithClouds
+        planetGroup = planetsGroup.getObjectByName('EarthGroup');
+        if (planetGroup) {
+            planet = planetGroup.getObjectByName('EarthWithClouds');
         }
     } else {
         planetGroup = planetsGroup.getObjectByName(`${planetName}Group`);
