@@ -21,6 +21,11 @@ let gui;
 let skybox = null;
 let starfield = null;
 
+// Camera following variables
+let followedPlanet = null;
+let cameraFollowOffset = new THREE.Vector3();
+let isFollowing = false;
+
 // FPS tracking variables
 let fpsCounter = 0;
 let fpsElement;
@@ -185,6 +190,9 @@ function animate() {
     // Update controls
     controls.update();
 
+    // Update camera following if active
+    updateCameraFollowing();
+
     if (planetSystem) {
         planetSystem.update(delta);
         planetSystem.updateLabels(camera);
@@ -251,6 +259,12 @@ function setupKeyboardControls() {
     document.addEventListener('keydown', (event) => {
         const key = event.key.toLowerCase();
         
+        // Handle escape key to stop following
+        if (event.key === 'Escape') {
+            stopFollowing();
+            return;
+        }
+        
         // Handle planet selection
         if (planetKeyMap[key]) {
             const planetName = planetKeyMap[key];
@@ -308,6 +322,9 @@ function onMouseClick(event) {
 
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
+    } else {
+        // Clicked on empty space - stop following
+        stopFollowing();
     }
     
     raycaster.layers.set(0);
@@ -447,9 +464,11 @@ function focusCameraOnPlanet(planetName) {
         return;
     }
     
-    const planetPosition = new THREE.Vector3();
-    planet.getWorldPosition(planetPosition);
+    // Set up following instead of animating
+    followedPlanet = planet;
+    isFollowing = true;
     
+    // Calculate appropriate offset based on planet size
     let cameraDistance;
     switch(planetName) {
     case 'EarthMoon':
@@ -470,13 +489,42 @@ function focusCameraOnPlanet(planetName) {
         cameraDistance = 4;
     }
     
-    const cameraPosition = new THREE.Vector3(
-        planetPosition.x + cameraDistance * 0.7,
-        planetPosition.y + cameraDistance * 0.5,
-        planetPosition.z + cameraDistance * 0.7
+    // Set the camera offset from the planet
+    cameraFollowOffset.set(
+        cameraDistance * 0.7,
+        cameraDistance * 0.5,
+        cameraDistance * 0.7
     );
+}
 
-    animateCameraToTarget(cameraPosition, planetPosition);
+/**
+ * Stops camera following and returns control to orbit controls
+ */
+function stopFollowing() {
+    followedPlanet = null;
+    isFollowing = false;
+}
+
+/**
+ * Updates camera position to follow the selected planet
+ */
+function updateCameraFollowing() {
+    if (!isFollowing || !followedPlanet) {
+        return;
+    }
+    
+    // Get the current planet position
+    const planetPosition = new THREE.Vector3();
+    followedPlanet.getWorldPosition(planetPosition);
+    
+    // Calculate desired camera position
+    const desiredCameraPosition = new THREE.Vector3().addVectors(planetPosition, cameraFollowOffset);
+    
+    // Smoothly interpolate camera position (slow pan)
+    camera.position.lerp(desiredCameraPosition, 0.02);
+    
+    // Make camera look at the planet
+    controls.target.lerp(planetPosition, 0.02);
 }
 
 /**

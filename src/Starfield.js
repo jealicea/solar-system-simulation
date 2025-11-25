@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 
 export class Starfield {
-    constructor(starCount = 15000) {
-        this.starCount = starCount;
+    constructor() {
+        this.starCount = 15000;
         this.stars = null;
     }
 
