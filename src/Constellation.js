@@ -262,7 +262,7 @@ export class Constellation {
         starsGroup.name = `${constellation.name}Stars`;
         
         constellation.stars.forEach((star) => {
-            const starGeometry = new THREE.SphereGeometry(0.5 * star.brightness, 8, 6);
+            const starGeometry = new THREE.SphereGeometry(1.0 * star.brightness, 8, 6);
             const starMaterial = new THREE.MeshBasicMaterial({
                 color: this.getStarColor(star.brightness),
                 transparent: true,
@@ -297,23 +297,32 @@ export class Constellation {
             const star1 = constellation.stars[connection[0]];
             const star2 = constellation.stars[connection[1]];
             
-            const lineGeometry = new THREE.BufferGeometry();
-            const positions = new Float32Array([
-                star1.x, star1.y, star1.z,
-                star2.x, star2.y, star2.z
-            ]);
+            // Create tube geometry for the main line
+            const curve = new THREE.LineCurve3(
+                new THREE.Vector3(star1.x, star1.y, star1.z),
+                new THREE.Vector3(star2.x, star2.y, star2.z)
+            );
             
-            lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const lineMaterial = new THREE.LineBasicMaterial({
-                color: 0x4a90e2,
+            // Main line with tube geometry
+            const tubeGeometry = new THREE.TubeGeometry(curve, 2, 0.15, 4, false);
+            const tubeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x66ccff,
                 transparent: true,
-                opacity: 0.6,
-                linewidth: 1
+                opacity: 0.9
             });
+            const tubeLine = new THREE.Mesh(tubeGeometry, tubeMaterial);
             
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            linesGroup.add(line);
+            // Glow effect with larger tube
+            const glowGeometry = new THREE.TubeGeometry(curve, 2, 0.4, 4, false);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x66ccff,
+                transparent: true,
+                opacity: 0.2
+            });
+            const glowLine = new THREE.Mesh(glowGeometry, glowMaterial);
+            
+            linesGroup.add(glowLine); // Add glow line first (behind)
+            linesGroup.add(tubeLine); // Add main line on top
         });
         
         return linesGroup;
@@ -418,7 +427,7 @@ export class Constellation {
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
         
-        const radius = Math.max(size.x, size.y, size.z) * 0.3;
+        const radius = Math.max(size.x, size.y, size.z) * 0.6;
         const colliderGeometry = new THREE.SphereGeometry(radius, 16, 12);
         const colliderMaterial = new THREE.MeshBasicMaterial({
             transparent: true,

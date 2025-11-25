@@ -45,6 +45,24 @@ const planetKeyMap = {
 function init() {
     // Scene setup
     scene = new THREE.Scene();
+    
+    // Create 3D spherical background that wraps around everything
+    const textureLoader = new THREE.TextureLoader();
+    const starsBackground = textureLoader.load(starsTexture);
+    
+    // Create large sphere geometry for 3D background
+    const skyboxRadius = 800; // Large enough to encompass constellations
+    const skyboxGeometry = new THREE.SphereGeometry(skyboxRadius, 64, 32);
+    const skyboxMaterial = new THREE.MeshBasicMaterial({
+        map: starsBackground,
+        side: THREE.DoubleSide, // Render both inside and outside faces
+        transparent: true,
+        opacity: 0.8
+    });
+    
+    const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+    skybox.name = 'StarsSkybox';
+    scene.add(skybox);
     scene.background = new THREE.Color(0x000000);
 
     // Camera setup
@@ -52,7 +70,7 @@ function init() {
         75,
         window.innerWidth / window.innerHeight,
         0.1,
-        1000
+        3000
     );
     camera.position.set(0, 10, 30);
 
@@ -120,7 +138,7 @@ function init() {
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.maxDistance = 550;
+    controls.maxDistance = 2000;
     controls.minDistance = 1;
     controls.dampingFactor = 0.05;
     controls.enableZoom = true;
