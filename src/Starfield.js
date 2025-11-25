@@ -2,9 +2,31 @@
 import * as THREE from 'three';
 
 export class Starfield {
-    constructor(starCount = 5000) {
+    constructor(starCount = 15000) {
         this.starCount = starCount;
         this.stars = null;
+    }
+
+    /**
+     * Creates a circular texture for the stars.
+     * @returns {THREE.CanvasTexture} A circular star texture.
+     */
+    createStarTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        
+        const context = canvas.getContext('2d');
+        const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.2, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 64, 64);
+        
+        return new THREE.CanvasTexture(canvas);
     }
 
     /**
@@ -35,16 +57,18 @@ export class Starfield {
             colors[i * 3 + 1] = colorVariation; // Green
             colors[i * 3 + 2] = blueShift;      // Blue
             
-            sizes[i] = Math.random() * 2 + 0.5;
+            sizes[i] = Math.random() * 0.5 + 0.1;
         }
         
         starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
         
+        const starTexture = this.createStarTexture();
         const starMaterial = new THREE.PointsMaterial({
+            map: starTexture,
             vertexColors: true,
-            size: 2.0,
+            size: 0.7,
             sizeAttenuation: true,
             transparent: true,
             opacity: 0.7,

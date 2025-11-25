@@ -23,18 +23,12 @@ export class SpaceShuttle {
             (gltf) => {
                 this.model = gltf.scene;
                 
-                // Set initial position, rotation, and scale
                 this.model.position.copy(this.position);
                 this.model.rotation.copy(this.rotation);
                 this.model.scale.copy(this.scale);
-                
-                // Set initial visibility
                 this.model.visible = this.visible;
-                
-                // Add the model to the scene
                 this.scene.add(this.model);
                 
-                // Set up animation mixer if animations exist
                 if (gltf.animations && gltf.animations.length > 0) {
                     this.mixer = new THREE.AnimationMixer(this.model);
                     gltf.animations.forEach((clip) => {
@@ -55,7 +49,6 @@ export class SpaceShuttle {
     }
 
     update(deltaTime) {
-        // Update animations if mixer exists
         if (this.mixer) {
             this.mixer.update(deltaTime);
         }

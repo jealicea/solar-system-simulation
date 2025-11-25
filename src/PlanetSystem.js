@@ -155,6 +155,7 @@ export class PlanetSystem {
      */
     create() {
         const group = new THREE.Group();
+        this.planetsGroup = group; // Store reference to the group
         
         this.planets.forEach(planet => {
             // Create a group for each planet
@@ -342,7 +343,7 @@ export class PlanetSystem {
         // Create moon mesh
         const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
         moonMesh.name = 'EarthMoon';
-        moonMesh.position.set(moonOrbitRadius, 0, 0); // Position relative to Earth
+        moonMesh.position.set(moonOrbitRadius, 0, 0);
         
         // Add moon to the moon group
         moonGroup.add(moonMesh);
@@ -557,6 +558,17 @@ export class PlanetSystem {
         } else {
             this.showLabel(planetName);
         }
+    }
+
+    /**
+     * Toggles the visibility of orbital lines for all planets.
+     */
+    toggleOrbitalLines() {
+        this.planetsGroup.traverse((child) => {
+            if (child.name && child.name.includes('Orbit')) {
+                child.visible = !child.visible;
+            }
+        });
     }
 
     /**

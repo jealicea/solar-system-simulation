@@ -9,20 +9,17 @@ import { Starfield } from './Starfield.js';
 import { PlanetSystem } from './PlanetSystem.js';
 import { AsteroidBelt } from './AsteroidBelt.js';
 import { Constellation } from './Constellation.js';
-import starsTexture from './assets/textures/stars.jpg';
 import { SpaceShuttle } from './SpaceShuttle.js';
+import starsTexture from './assets/textures/Stars.jpg';
+
 
 let scene, camera, renderer, clock, controls, planetSystem, planetsGroup, asteroidBelt, asteroidBeltGroup, constellationSystem, constellationGroup, spaceShuttle;
 let composer, bloomPass;
 let raycaster, mouse;
 let speedMultiplier = 1.0;
 let gui;
-
-// Shuttle mode variables
-let isShuttleMode = false;
-let originalCameraPosition = new THREE.Vector3(0, 10, 30);
-let originalCameraTarget = new THREE.Vector3(0, 0, 0);
-let shuttleControlsRef = null; // Reference to GUI shuttle controls
+let skybox = null;
+let starfield = null;
 
 // FPS tracking variables
 let fpsCounter = 0;
@@ -48,24 +45,7 @@ const planetKeyMap = {
 function init() {
     // Scene setup
     scene = new THREE.Scene();
-    
-    // Create 3D spherical background that wraps around everything
-    const textureLoader = new THREE.TextureLoader();
-    const starsBackground = textureLoader.load(starsTexture);
-    
-    // Create large sphere geometry for 3D background
-    const skyboxRadius = 800; // Large enough to encompass constellations
-    const skyboxGeometry = new THREE.SphereGeometry(skyboxRadius, 64, 32);
-    const skyboxMaterial = new THREE.MeshBasicMaterial({
-        map: starsBackground,
-        side: THREE.BackSide, // Render inside faces
-        transparent: true,
-        opacity: 1.0
-    });
-    
-    const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
-    skybox.name = 'StarsSkybox';
-    scene.add(skybox);
+    scene.background = new THREE.Color(0x000000);
 
     // Camera setup
     camera = new THREE.PerspectiveCamera(
@@ -85,9 +65,6 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.toneMappingExposure = 2.0;
-    
-    // Set clear color to transparent so stars background shows through
-    renderer.setClearColor(0x000000, 0);
 
     // Post-processing setup
     setupPostProcessing();
@@ -111,8 +88,12 @@ function init() {
     scene.add(sunLightHelper);
 
     // Create and add starfield
-    const starfield = new Starfield();
+    starfield = new Starfield();
     starfield.addToScene(scene);
+
+    // Create and add skybox by default
+    skybox = createSkybox();
+    scene.add(skybox);
 
     // Create and add planet system with all planets
     planetSystem = new PlanetSystem();
@@ -134,6 +115,7 @@ function init() {
     spaceShuttle.setPosition(5, 5, 5);
     spaceShuttle.setRotation(0, Math.PI / 2, 0);
     spaceShuttle.setScale(0.1, 0.1, 0.1);
+    spaceShuttle.setVisible(false); // Start hidden
 
     // Orbit controls setup
     controls = new OrbitControls(camera, renderer.domElement);
@@ -153,7 +135,7 @@ function init() {
     setupKeyboardControls();
     raycaster = new THREE.Raycaster();
     raycaster.params.Points.threshold = 2.0;
-    raycaster.layers.set(0); // Only check objects on layer 0 by default
+    raycaster.layers.set(0);
     mouse = new THREE.Vector2();
     setupMouseControls();
     
@@ -200,21 +182,8 @@ function animate() {
         lastTime = currentTime;
     }
 
-    // Update shuttle
-    if (spaceShuttle) {
-        spaceShuttle.update(delta);
-    }
-
-    // Handle shuttle mode camera
-    if (isShuttleMode && spaceShuttle && spaceShuttle.model) {
-        const cameraPosition = spaceShuttle.getCameraPosition();
-        const cameraTarget = spaceShuttle.getCameraTarget();
-        
-        camera.position.copy(cameraPosition);
-        camera.lookAt(cameraTarget);
-    } else {
-        controls.update();
-    }
+    // Update controls
+    controls.update();
 
     if (planetSystem) {
         planetSystem.update(delta);
@@ -251,56 +220,37 @@ function setupPostProcessing() {
     composer.addPass(bloomPass);
 }
 
+/**
+ * Creates a spherical skybox using the Stars.jpg texture.
+ * @returns {THREE.Mesh} The skybox mesh.
+ */
+function createSkybox() {
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(starsTexture);
+    
+    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide // Render inside the sphere
+    });
+    
+    const skyboxMesh = new THREE.Mesh(geometry, material);
+    skyboxMesh.name = 'skybox';
+    
+    return skyboxMesh;
+}
+
 init();
 
 /**
- * Sets up keyboard controls for planet selection and shuttle controls.
+ * Sets up keyboard controls for planet selection.
  */
 function setupKeyboardControls() {
     // Handle keydown events
     document.addEventListener('keydown', (event) => {
         const key = event.key.toLowerCase();
         
-        // Toggle shuttle mode with 'Tab' key
-        if (event.code === 'Tab') {
-            event.preventDefault();
-            toggleShuttleMode();
-            return;
-        }
-        
-        // Handle shuttle controls when in shuttle mode
-        if (isShuttleMode && spaceShuttle) {
-            switch (key) {
-            case 'w':
-                spaceShuttle.setControl('up', true);
-                break;
-            case 's':
-                spaceShuttle.setControl('down', true);
-                break;
-            case 'a':
-                spaceShuttle.setControl('left', true);
-                break;
-            case 'd':
-                spaceShuttle.setControl('right', true);
-                break;
-            case 'q':
-                spaceShuttle.setControl('rollLeft', true);
-                break;
-            case 'e':
-                spaceShuttle.setControl('rollRight', true);
-                break;
-            }
-            
-            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-                spaceShuttle.setControl('thrust', true);
-            }
-            if (event.code === 'ControlLeft' || event.code === 'ControlRight') {
-                spaceShuttle.setControl('decreaseThrust', true);
-            }
-            return;
-        }
-        
-        // Handle planet selection (only when not in shuttle mode)
+        // Handle planet selection
         if (planetKeyMap[key]) {
             const planetName = planetKeyMap[key];
 
@@ -313,135 +263,6 @@ function setupKeyboardControls() {
             }
         }
     });
-    
-    // Handle keyup events
-    document.addEventListener('keyup', (event) => {
-        const key = event.key.toLowerCase();
-        
-        // Handle shuttle controls when in shuttle mode
-        if (isShuttleMode && spaceShuttle) {
-            switch (key) {
-            case 'w':
-                spaceShuttle.setControl('up', false);
-                break;
-            case 's':
-                spaceShuttle.setControl('down', false);
-                break;
-            case 'a':
-                spaceShuttle.setControl('left', false);
-                break;
-            case 'd':
-                spaceShuttle.setControl('right', false);
-                break;
-            case 'q':
-                spaceShuttle.setControl('rollLeft', false);
-                break;
-            case 'e':
-                spaceShuttle.setControl('rollRight', false);
-                break;
-            }
-            
-            if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-                spaceShuttle.setControl('thrust', false);
-            }
-            if (event.code === 'ControlLeft' || event.code === 'ControlRight') {
-                spaceShuttle.setControl('decreaseThrust', false);
-            }
-        }
-    });
-}
-
-/**
- * Toggles between shuttle mode and normal camera mode.
- */
-function toggleShuttleMode() {
-    isShuttleMode = !isShuttleMode;
-    
-    if (isShuttleMode) {
-        // Store current camera state
-        originalCameraPosition.copy(camera.position);
-        originalCameraTarget.copy(controls.target);
-        
-        // Disable orbit controls
-        controls.enabled = false;
-        
-        // Position shuttle at current camera location if it exists
-        if (spaceShuttle && spaceShuttle.model) {
-            spaceShuttle.setPosition(camera.position.x, camera.position.y, camera.position.z);
-        }
-        
-        // Show shuttle model in shuttle mode
-        if (spaceShuttle) {
-            spaceShuttle.setVisible(true);
-        }
-        
-        // Show shuttle mode UI feedback
-        showShuttleModeIndicator();
-    } else {
-        // Re-enable orbit controls
-        controls.enabled = true;
-        
-        // Restore original camera position
-        camera.position.copy(originalCameraPosition);
-        controls.target.copy(originalCameraTarget);
-        controls.update();
-        
-        // Hide shuttle model in perspective mode
-        if (spaceShuttle) {
-            spaceShuttle.setVisible(false);
-        }
-        
-        // Hide shuttle mode UI feedback
-        hideShuttleModeIndicator();
-    }
-    
-    // Update GUI dropdown if it exists
-    if (shuttleControlsRef) {
-        shuttleControlsRef.cameraMode = isShuttleMode ? 'Shuttle Mode' : 'Perspective Camera';
-    }
-}
-
-/**
- * Shows shuttle mode indicator on screen.
- */
-function showShuttleModeIndicator() {
-    let indicator = document.getElementById('shuttleModeIndicator');
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'shuttleModeIndicator';
-        indicator.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 255, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-family: Arial, sans-serif;
-            font-weight: bold;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        `;
-        indicator.innerHTML = `
-            <div>🚀 SHUTTLE MODE</div>
-            <div style="font-size: 12px; margin-top: 5px;">
-                W/S: Pitch | A/D: Yaw | Q/E: Roll<br>
-                Shift: Thrust | Ctrl: Brake | Tab: Exit
-            </div>
-        `;
-        document.body.appendChild(indicator);
-    }
-    indicator.style.display = 'block';
-}
-
-/**
- * Hides shuttle mode indicator.
- */
-function hideShuttleModeIndicator() {
-    const indicator = document.getElementById('shuttleModeIndicator');
-    if (indicator) {
-        indicator.style.display = 'none';
-    }
 }
 
 /**
@@ -463,7 +284,6 @@ function onMouseClick(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // Only check planets on single click
     raycaster.layers.set(0);
     raycaster.setFromCamera(mouse, camera);
 
@@ -484,7 +304,6 @@ function onMouseClick(event) {
         focusCameraOnPlanet(planetName);
     }
     
-    // Reset raycaster to default layer
     raycaster.layers.set(0);
 }
 
@@ -770,6 +589,38 @@ function setupGUIControls() {
     gui = new GUI();
     gui.title('Solar System Controls');
 
+    // Add background controls to main Solar System Controls
+    const solarSystemControls = {
+        showBackground: true,
+        showStarfield: true,
+        showSkybox: true
+    };
+
+    gui.add(solarSystemControls, 'showSkybox')
+        .name('Show Star Background')
+        .onChange((value) => {
+            if (skybox) {
+                if (value) {
+                    scene.add(skybox);
+                } else {
+                    scene.remove(skybox);
+                }
+            }
+        });
+
+    gui.add(solarSystemControls, 'showStarfield')
+        .name('Show Starfield')
+        .onChange((value) => {
+            if (starfield) {
+                if (value) {
+                    starfield.addToScene(scene);
+                } else {
+                    starfield.removeFromScene(scene);
+                }
+            }
+        });
+
+
     const orbitalControlsFolder = gui.addFolder('Orbital Controls');
     orbitalControlsFolder.add({ orbitalSpeed: speedMultiplier }, 'orbitalSpeed', 0, 5, 0.1)
         .name('Orbital Speed')
@@ -777,27 +628,30 @@ function setupGUIControls() {
             speedMultiplier = value;
         });
 
-    // Add shuttle controls folder
+    const orbitalControls = {
+        showOrbitalLines: true
+    };
+    
+    orbitalControlsFolder.add(orbitalControls, 'showOrbitalLines')
+        .name('Show Orbital Lines')
+        .onChange(() => {
+            if (planetSystem) {
+                planetSystem.toggleOrbitalLines();
+            }
+        });
+
     const shuttleControlsFolder = gui.addFolder('Shuttle Controls');
     
     const shuttleControls = {
-        cameraMode: 'Perspective Camera', // Default mode
-        toggleMode: () => {
-            toggleShuttleMode();
-            shuttleControls.cameraMode = isShuttleMode ? 'Shuttle Mode' : 'Perspective Camera';
-        }
+        visible: false
     };
     
-    // Store reference for updating from keyboard toggle
-    shuttleControlsRef = shuttleControls;
-    
-    // Dropdown for camera mode selection
-    shuttleControlsFolder.add(shuttleControls, 'cameraMode', ['Perspective Camera', 'Shuttle Mode'])
-        .name('Camera Mode')
+    // Toggle for shuttle visibility
+    shuttleControlsFolder.add(shuttleControls, 'visible')
+        .name('Show Shuttle')
         .onChange((value) => {
-            const shouldBeShuttleMode = (value === 'Shuttle Mode');
-            if (shouldBeShuttleMode !== isShuttleMode) {
-                toggleShuttleMode();
+            if (spaceShuttle) {
+                spaceShuttle.setVisible(value);
             }
         });
 
