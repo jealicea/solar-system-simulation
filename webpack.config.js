@@ -42,7 +42,7 @@ module.exports = {
             template: './src/index.html',
             filename: 'index.html',
             chunks: ['final-project'],
-            favicon: './src/assets/mars_space.ico',
+            favicon: './src/assets/favicon.ico',
         }),
     ],
     devServer: {
