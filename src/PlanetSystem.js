@@ -218,19 +218,15 @@ export class PlanetSystem {
                 emissiveIntensity: 1.0
             });
         } else if (planet.name === 'Earth') {
-            // Create special Earth material with clouds overlay
             const earthTextureMap = this.textureLoader.load(planet.texture);
             const cloudsTextureMap = this.textureLoader.load(earthCloudsTexture);
-            
-            // Create the main Earth mesh
             material = new THREE.MeshPhongMaterial({ map: earthTextureMap });
             
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(0, 0, 0); // Position relative to group
+            mesh.position.set(0, 0, 0);
             mesh.name = planet.name;
             mesh.rotation.z = planet.axialTilt;
-            
-            // Create the clouds mesh as a larger sphere to hover above Earth
+        
             const cloudsGeometry = new THREE.SphereGeometry(planet.size * 1.02, 32, 32);
             const cloudsMaterial = new THREE.MeshPhongMaterial({
                 map: cloudsTextureMap,
@@ -240,18 +236,16 @@ export class PlanetSystem {
             });
             
             const cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
-            cloudsMesh.position.set(0, 0, 0); // Position relative to group
+            cloudsMesh.position.set(0, 0, 0);
             cloudsMesh.name = 'EarthClouds';
             cloudsMesh.rotation.z = planet.axialTilt;
             
-            // Create a group to hold both Earth and clouds
             const earthGroup = new THREE.Group();
             earthGroup.position.set(planet.position.x, planet.position.y, planet.position.z);
             earthGroup.add(mesh);
             earthGroup.add(cloudsMesh);
             earthGroup.name = 'EarthWithClouds';
-            
-            // Store the group in planetMeshes so it can be moved during orbital motion
+        
             this.planetMeshes.set(planet.name, earthGroup);
             
             return earthGroup;

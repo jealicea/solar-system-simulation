@@ -682,6 +682,7 @@ function setupGUIControls() {
 
 
     const orbitalControlsFolder = gui.addFolder('Orbital Controls');
+    orbitalControlsFolder.close();
     orbitalControlsFolder.add({ orbitalSpeed: speedMultiplier }, 'orbitalSpeed', 0, 5, 0.1)
         .name('Orbital Speed')
         .onChange((value) => {
@@ -701,6 +702,7 @@ function setupGUIControls() {
         });
 
     const shuttleControlsFolder = gui.addFolder('Shuttle Controls');
+    shuttleControlsFolder.close();
     
     const shuttleControls = {
         visible: false
@@ -716,6 +718,7 @@ function setupGUIControls() {
         });
 
     const constellationControlsFolder = gui.addFolder('Constellation Controls');
+    constellationControlsFolder.close();
 
     const constellationControls = {
         showLines: true,
