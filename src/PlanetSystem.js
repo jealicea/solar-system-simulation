@@ -13,6 +13,175 @@ import neptuneTexture from './assets/textures/Neptune.jpg';
 import earthMoonTexture from './assets/textures/Moon.jpg';
 import plutoTexture from './assets/textures/Pluto.jpg';
 
+// Planet information data for information sprites
+const planetInfo = {
+    'Sun': {
+        name: 'The Sun',
+        type: 'Star',
+        description: 'The Sun is the star at the center of our Solar System. It is a nearly perfect sphere of hot plasma, with internal convective motion that generates a magnetic field.',
+        diameter: '1,392,700 km',
+        mass: '1.989 × 10³⁰ kg',
+        temperature: '5,778 K (surface)',
+        composition: 'Hydrogen (73%), Helium (25%), Other elements (2%)',
+        facts: [
+            'Contains 99.86% of the Solar System\'s mass',
+            'Core temperature reaches 15 million°C',
+            'Light takes 8 minutes to reach Earth',
+            'Burns 600 million tons of hydrogen per second'
+        ]
+    },
+    'Mercury': {
+        name: 'Mercury',
+        type: 'Terrestrial Planet',
+        description: 'Mercury is the smallest planet in our Solar System and closest to the Sun. It has extreme temperature variations and virtually no atmosphere.',
+        diameter: '4,879 km',
+        mass: '3.301 × 10²³ kg',
+        temperature: '-173°C to 427°C',
+        composition: 'Large iron core, thin silicate mantle',
+        facts: [
+            'One day on Mercury lasts 176 Earth days',
+            'No moons or rings',
+            'Has the most eccentric orbit of all planets',
+            'Named after the Roman messenger god'
+        ]
+    },
+    'Venus': {
+        name: 'Venus',
+        type: 'Terrestrial Planet',
+        description: 'Venus is the second planet from the Sun and is often called Earth\'s "twin" due to similar size. It has a dense, toxic atmosphere with extreme greenhouse effect.',
+        diameter: '12,104 km',
+        mass: '4.867 × 10²⁴ kg',
+        temperature: '462°C (hottest planet)',
+        composition: 'Dense CO₂ atmosphere, rocky surface',
+        facts: [
+            'Rotates backwards (retrograde rotation)',
+            'One day on Venus is longer than its year',
+            'Surface pressure is 90 times that of Earth',
+            'Clouds are made of sulfuric acid'
+        ]
+    },
+    'Earth': {
+        name: 'Earth',
+        type: 'Terrestrial Planet',
+        description: 'Earth is the third planet from the Sun and the only known planet to harbor life. It has liquid water, a protective atmosphere, and a suitable temperature for life.',
+        diameter: '12,756 km',
+        mass: '5.972 × 10²⁴ kg',
+        temperature: '-89°C to 58°C (average 15°C)',
+        composition: 'Nitrogen-oxygen atmosphere, water oceans',
+        facts: [
+            'Only planet known to support life',
+            '71% of surface is covered by water',
+            'Has one natural satellite (the Moon)',
+            'Magnetic field protects from solar radiation'
+        ]
+    },
+    'Mars': {
+        name: 'Mars',
+        type: 'Terrestrial Planet',
+        description: 'Mars is the fourth planet from the Sun, known as the "Red Planet" due to iron oxide on its surface. It has polar ice caps and the largest volcano in the Solar System.',
+        diameter: '6,792 km',
+        mass: '6.39 × 10²³ kg',
+        temperature: '-87°C to -5°C',
+        composition: 'Thin CO₂ atmosphere, iron-rich surface',
+        facts: [
+            'Has two small moons: Phobos and Deimos',
+            'Home to Olympus Mons, the largest volcano',
+            'Evidence suggests it once had flowing water',
+            'A day on Mars is similar to Earth (24h 37min)'
+        ]
+    },
+    'Jupiter': {
+        name: 'Jupiter',
+        type: 'Gas Giant',
+        description: 'Jupiter is the largest planet in our Solar System, a gas giant with a Great Red Spot storm and over 80 moons. It acts as a cosmic vacuum cleaner, protecting inner planets.',
+        diameter: '142,984 km',
+        mass: '1.898 × 10²⁷ kg',
+        temperature: '-108°C (cloud tops)',
+        composition: 'Hydrogen and helium gas',
+        facts: [
+            'Has over 80 known moons',
+            'Great Red Spot is a storm larger than Earth',
+            'Could fit all other planets inside it',
+            'Has a faint ring system'
+        ]
+    },
+    'Saturn': {
+        name: 'Saturn',
+        type: 'Gas Giant',
+        description: 'Saturn is the sixth planet from the Sun and is famous for its prominent ring system. It\'s a gas giant with low density and many moons.',
+        diameter: '120,536 km',
+        mass: '5.683 × 10²⁶ kg',
+        temperature: '-139°C',
+        composition: 'Hydrogen and helium gas',
+        facts: [
+            'Has the most spectacular ring system',
+            'Less dense than water - it would float!',
+            'Has over 80 known moons',
+            'Titan, its largest moon, has a thick atmosphere'
+        ]
+    },
+    'Uranus': {
+        name: 'Uranus',
+        type: 'Ice Giant',
+        description: 'Uranus is the seventh planet from the Sun and rotates on its side. It\'s an ice giant with a unique tilted rotation and faint rings.',
+        diameter: '51,118 km',
+        mass: '8.681 × 10²⁵ kg',
+        temperature: '-197°C',
+        composition: 'Water, methane, and ammonia ices',
+        facts: [
+            'Rotates on its side (98° axial tilt)',
+            'Has faint rings discovered in 1977',
+            'Has 27 known moons',
+            'Methane gives it blue-green color'
+        ]
+    },
+    'Neptune': {
+        name: 'Neptune',
+        type: 'Ice Giant',
+        description: 'Neptune is the eighth and outermost planet in our Solar System. It\'s an ice giant with the strongest winds in the Solar System and a deep blue color.',
+        diameter: '49,528 km',
+        mass: '1.024 × 10²⁶ kg',
+        temperature: '-201°C',
+        composition: 'Water, methane, and ammonia ices',
+        facts: [
+            'Has the strongest winds (up to 2,100 km/h)',
+            'Takes 165 Earth years to orbit the Sun',
+            'Has 14 known moons',
+            'Was discovered through mathematical calculations'
+        ]
+    },
+    'Pluto': {
+        name: 'Pluto',
+        type: 'Dwarf Planet',
+        description: 'Pluto is a dwarf planet in the outer Solar System. Once considered the ninth planet, it was reclassified in 2006 but remains fascinating with its complex system of moons.',
+        diameter: '2,377 km',
+        mass: '1.303 × 10²² kg',
+        temperature: '-229°C',
+        composition: 'Rock and ice',
+        facts: [
+            'Has five known moons, largest is Charon',
+            'Orbit is highly elliptical',
+            'Sometimes closer to Sun than Neptune',
+            'Heart-shaped feature called Tombaugh Regio'
+        ]
+    },
+    'EarthMoon': {
+        name: 'The Moon',
+        type: 'Natural Satellite',
+        description: 'The Moon is Earth\'s only natural satellite and the fifth largest moon in the Solar System. It influences Earth\'s tides and stabilizes our planet\'s axial tilt.',
+        diameter: '3,474 km',
+        mass: '7.342 × 10²² kg',
+        temperature: '-173°C to 127°C',
+        composition: 'Rocky body with small iron core',
+        facts: [
+            'Always shows same face to Earth (tidally locked)',
+            'Causes ocean tides through gravitational pull',
+            'Gradually moving away from Earth (3.8cm/year)',
+            'Formed from debris after giant impact'
+        ]
+    }
+};
+
 const planetsData = [
     {
         name: 'Sun',
@@ -740,6 +909,23 @@ export class PlanetSystem {
                 }
             }
         }
+    }
+
+    /**
+     * Gets planet information by name.
+     * @param {string} planetName - The name of the planet.
+     * @returns {Object|null} The planet information or null if not found.
+     */
+    getPlanetInfo(planetName) {
+        return planetInfo[planetName] || null;
+    }
+
+    /**
+     * Gets all planet names that have information available.
+     * @returns {Array<string>} Array of planet names.
+     */
+    getAllPlanetNames() {
+        return Object.keys(planetInfo);
     }
 
     /**

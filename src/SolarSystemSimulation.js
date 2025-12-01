@@ -268,9 +268,10 @@ function setupKeyboardControls() {
             return;
         }
         
-        // Handle escape key to stop following
+        // Handle escape key to stop following and close info panel
         if (event.key === 'Escape') {
             stopFollowing();
+            closePlanetInfo();
             return;
         }
         
@@ -279,9 +280,11 @@ function setupKeyboardControls() {
             const planetName = planetKeyMap[key];
 
             if (planetName === 'Earth\'s Moon') {
+                showPlanetInfo('EarthMoon');
                 planetSystem.toggleLabel('Earth\'s Moon');
                 focusCameraOnPlanet('EarthMoon');
             } else {
+                showPlanetInfo(planetName);
                 planetSystem.toggleLabel(planetName);
                 focusCameraOnPlanet(planetName);
             }
@@ -297,6 +300,60 @@ function setupMouseControls() {
     renderer.domElement.addEventListener('dblclick', onMouseDoubleClick);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
 }
+
+/**
+ * Shows planet information in the info panel.
+ * @param {string} planetName - The name of the planet to show info for.
+ */
+function showPlanetInfo(planetName) {
+    const planetInfo = planetSystem.getPlanetInfo(planetName);
+    if (!planetInfo) return;
+
+    const infoPanel = document.getElementById('planet-info');
+    const infoContent = document.getElementById('planet-info-content');
+    
+    infoContent.innerHTML = `
+        <h2>${planetInfo.name}</h2>
+        <div class="planet-type">${planetInfo.type}</div>
+        
+        <h3>Description</h3>
+        <p>${planetInfo.description}</p>
+        
+        <h3>Physical Properties</h3>
+        <div class="info-row">
+            <span class="info-label">Diameter:</span>
+            <span class="info-value">${planetInfo.diameter}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Mass:</span>
+            <span class="info-value">${planetInfo.mass}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Temperature:</span>
+            <span class="info-value">${planetInfo.temperature}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Composition:</span>
+            <span class="info-value">${planetInfo.composition}</span>
+        </div>
+        
+        <h3>Interesting Facts</h3>
+        <ul class="facts-list">
+            ${planetInfo.facts.map(fact => `<li>${fact}</li>`).join('')}
+        </ul>
+    `;
+    
+    infoPanel.style.display = 'block';
+}
+
+/**
+ * Closes the planet information panel.
+ */
+function closePlanetInfo() {
+    const infoPanel = document.getElementById('planet-info');
+    infoPanel.style.display = 'none';
+}
+window.closePlanetInfo = closePlanetInfo;
 
 /**
  * Handles mouse click events for planet selection only.
@@ -323,17 +380,17 @@ function onMouseClick(event) {
     if (intersects.length > 0) {
         const clickedPlanet = intersects[0].object;
         let planetName = clickedPlanet.name;
-        
-        // Handle Earth clouds - if user clicks on clouds, treat as Earth click
+
         if (planetName === 'EarthClouds') {
             planetName = 'Earth';
         }
-
+        showPlanetInfo(planetName);
+        
         planetSystem.toggleLabel(planetName);
         focusCameraOnPlanet(planetName);
     } else {
-        // Clicked on empty space - stop following
         stopFollowing();
+        closePlanetInfo();
     }
     
     raycaster.layers.set(0);
@@ -349,7 +406,6 @@ function onMouseDoubleClick(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // First check constellation stars on layer 0
     raycaster.layers.set(0);
     raycaster.setFromCamera(mouse, camera);
     
@@ -374,7 +430,6 @@ function onMouseDoubleClick(event) {
         return;
     }
     
-    // Check constellation colliders on layer 1 as fallback
     raycaster.layers.set(1);
     raycaster.setFromCamera(mouse, camera);
     
@@ -391,7 +446,6 @@ function onMouseDoubleClick(event) {
         }
     }
     
-    // Reset raycaster to default layer
     raycaster.layers.set(0);
 }
 
@@ -404,7 +458,6 @@ function onMouseMove(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // Only check layer 0 objects for hover (planets and constellation stars)
     raycaster.layers.set(0);
     raycaster.setFromCamera(mouse, camera);
 
@@ -421,8 +474,7 @@ function onMouseMove(event) {
         renderer.domElement.style.cursor = 'pointer';
         return;
     }
-    
-    // Check constellation stars only (not collision spheres)
+
     const constellationStars = [];
     if (constellationGroup && constellationSystem) {
         constellationGroup.traverse((child) => {
@@ -457,7 +509,6 @@ function focusCameraOnPlanet(planetName) {
             }
         }
     } else if (planetName === 'Earth') {
-        // Handle Earth specially - it's now a group called EarthWithClouds
         planetGroup = planetsGroup.getObjectByName('EarthGroup');
         if (planetGroup) {
             planet = planetGroup.getObjectByName('EarthWithClouds');
@@ -473,11 +524,9 @@ function focusCameraOnPlanet(planetName) {
         return;
     }
     
-    // Set up following instead of animating
     followedPlanet = planet;
     isFollowing = true;
     
-    // Calculate appropriate offset based on planet size
     let cameraDistance;
     switch(planetName) {
     case 'EarthMoon':
@@ -498,7 +547,6 @@ function focusCameraOnPlanet(planetName) {
         cameraDistance = 4;
     }
     
-    // Set the camera offset from the planet
     cameraFollowOffset.set(
         cameraDistance * 0.7,
         cameraDistance * 0.5,

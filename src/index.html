@@ -88,6 +88,121 @@
             display: block;
             z-index: 1;
         }
+
+        #planet-info {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-family: Arial, sans-serif;
+            z-index: 100;
+            display: none;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #planet-info h2 {
+            margin: 0 0 10px 0;
+            color: #4a9eff;
+            font-size: 24px;
+            border-bottom: 2px solid #4a9eff;
+            padding-bottom: 5px;
+        }
+
+        #planet-info h3 {
+            margin: 15px 0 8px 0;
+            color: #ffaa4a;
+            font-size: 16px;
+        }
+
+        #planet-info p {
+            margin: 8px 0;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        #planet-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #planet-info .info-label {
+            font-weight: bold;
+            color: #ccc;
+            flex: 1;
+        }
+
+        #planet-info .info-value {
+            color: white;
+            flex: 1;
+            text-align: right;
+        }
+
+        #planet-info .facts-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        #planet-info .facts-list li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #planet-info .facts-list li:before {
+            content: "★";
+            position: absolute;
+            left: 0;
+            color: #4a9eff;
+            font-weight: bold;
+        }
+
+        #planet-info .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        #planet-info .close-btn:hover {
+            background: rgba(255, 107, 107, 0.2);
+            transform: scale(1.1);
+        }
+
+        #planet-info .planet-type {
+            display: inline-block;
+            background: rgba(74, 158, 255, 0.3);
+            color: #4a9eff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #4a9eff;
+        }
     </style>
 </head>
 <body>
@@ -97,12 +212,19 @@
         </div>
         <div id="controls">
             <strong>Controls:</strong><br>
+            Click : Planet Info<br>
             1-9 : Select Planet<br>
             +/- : Adjust Time Speed<br>
             Space : Pause<br>
             <button id="reset">Reset</button>
         </div>
         <div id="fps">FPS: --</div>
+        <div id="planet-info">
+            <button class="close-btn" onclick="closePlanetInfo()">&times;</button>
+            <div id="planet-info-content">
+                <!-- Planet information will be dynamically populated here -->
+            </div>
+        </div>
     </div>
     <canvas id="scene"></canvas>
 </body>
