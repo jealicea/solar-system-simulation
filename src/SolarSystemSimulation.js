@@ -41,8 +41,9 @@ const planetKeyMap = {
     '6': 'Saturn',
     '7': 'Uranus',
     '8': 'Neptune',
-    '9': 'Sun',
-    '0': 'Earth\'s Moon'
+    '9': 'Pluto',
+    '0': 'Sun',
+    '-': 'Earth\'s Moon'
 };
 
 /**
@@ -748,4 +749,230 @@ function setupGUIControls() {
                 constellationSystem.toggleLabels();
             }
         });
+
+    // Miscellaneous Controls folder
+    const miscControlsFolder = gui.addFolder('Miscellaneous Controls');
+    miscControlsFolder.close();
+
+    const miscControls = {
+        showPluto: true,
+        flatEarth: false
+    };
+
+    miscControlsFolder.add(miscControls, 'showPluto')
+        .name('Show Pluto & Orbit')
+        .onChange((value) => {
+            if (planetSystem) {
+                const currentVisibility = planetSystem.isPlanetVisible('Pluto');
+                if (currentVisibility !== value) {
+                    planetSystem.togglePlanet('Pluto');
+                }
+                // Also toggle the orbit line to match
+                planetSystem.planetsGroup.traverse((child) => {
+                    if (child.name === 'PlutoOrbit') {
+                        child.visible = value;
+                    }
+                });
+            }
+        });
+
+    miscControlsFolder.add(miscControls, 'flatEarth')
+        .name('Flat Earth Theory')
+        .onChange((value) => {
+            if (planetSystem) {
+                planetSystem.toggleEarthShape(value);
+            }
+        });
+
+    // Quick Navigation folder
+    const quickNavFolder = gui.addFolder('Quick Navigation');
+    quickNavFolder.open();
+
+    const navigationControls = {
+        'Go to Sun': () => {
+            const sunMesh = planetSystem.planetMeshes.get('Sun');
+            if (sunMesh) {
+                const sunPosition = new THREE.Vector3();
+                sunMesh.getWorldPosition(sunPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    sunPosition.x + 15,
+                    sunPosition.y + 8,
+                    sunPosition.z + 15
+                );
+                
+                animateCameraToTarget(cameraPosition, sunPosition);
+            }
+        },
+        'Go to Mercury': () => {
+            const mercuryMesh = planetSystem.planetMeshes.get('Mercury');
+            if (mercuryMesh) {
+                const mercuryPosition = new THREE.Vector3();
+                mercuryMesh.getWorldPosition(mercuryPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    mercuryPosition.x + 3,
+                    mercuryPosition.y + 2,
+                    mercuryPosition.z + 3
+                );
+                
+                animateCameraToTarget(cameraPosition, mercuryPosition);
+            }
+        },
+        'Go to Venus': () => {
+            const venusMesh = planetSystem.planetMeshes.get('Venus');
+            if (venusMesh) {
+                const venusPosition = new THREE.Vector3();
+                venusMesh.getWorldPosition(venusPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    venusPosition.x + 4,
+                    venusPosition.y + 3,
+                    venusPosition.z + 4
+                );
+                
+                animateCameraToTarget(cameraPosition, venusPosition);
+            }
+        },
+        'Go to Earth': () => {
+            const earthMesh = planetSystem.planetMeshes.get('Earth');
+            if (earthMesh) {
+                const earthPosition = new THREE.Vector3();
+                earthMesh.getWorldPosition(earthPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    earthPosition.x + 5,
+                    earthPosition.y + 3,
+                    earthPosition.z + 5
+                );
+                
+                animateCameraToTarget(cameraPosition, earthPosition);
+            }
+        },
+        'Go to Earth\'s Moon': () => {
+            const moonMesh = planetSystem.planetMeshes.get('EarthMoon');
+            if (moonMesh) {
+                const moonPosition = new THREE.Vector3();
+                moonMesh.getWorldPosition(moonPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    moonPosition.x + 2,
+                    moonPosition.y + 1,
+                    moonPosition.z + 2
+                );
+                
+                animateCameraToTarget(cameraPosition, moonPosition);
+            }
+        },
+        'Go to Mars': () => {
+            const marsMesh = planetSystem.planetMeshes.get('Mars');
+            if (marsMesh) {
+                const marsPosition = new THREE.Vector3();
+                marsMesh.getWorldPosition(marsPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    marsPosition.x + 4,
+                    marsPosition.y + 2,
+                    marsPosition.z + 4
+                );
+                
+                animateCameraToTarget(cameraPosition, marsPosition);
+            }
+        },
+        'Go to Jupiter': () => {
+            const jupiterMesh = planetSystem.planetMeshes.get('Jupiter');
+            if (jupiterMesh) {
+                const jupiterPosition = new THREE.Vector3();
+                jupiterMesh.getWorldPosition(jupiterPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    jupiterPosition.x + 12,
+                    jupiterPosition.y + 6,
+                    jupiterPosition.z + 12
+                );
+                
+                animateCameraToTarget(cameraPosition, jupiterPosition);
+            }
+        },
+        'Go to Saturn': () => {
+            const saturnMesh = planetSystem.planetMeshes.get('Saturn');
+            if (saturnMesh) {
+                const saturnPosition = new THREE.Vector3();
+                saturnMesh.getWorldPosition(saturnPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    saturnPosition.x + 10,
+                    saturnPosition.y + 5,
+                    saturnPosition.z + 10
+                );
+                
+                animateCameraToTarget(cameraPosition, saturnPosition);
+            }
+        },
+        'Go to Uranus': () => {
+            const uranusMesh = planetSystem.planetMeshes.get('Uranus');
+            if (uranusMesh) {
+                const uranusPosition = new THREE.Vector3();
+                uranusMesh.getWorldPosition(uranusPosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    uranusPosition.x + 8,
+                    uranusPosition.y + 4,
+                    uranusPosition.z + 8
+                );
+                
+                animateCameraToTarget(cameraPosition, uranusPosition);
+            }
+        },
+        'Go to Neptune': () => {
+            const neptuneMesh = planetSystem.planetMeshes.get('Neptune');
+            if (neptuneMesh) {
+                const neptunePosition = new THREE.Vector3();
+                neptuneMesh.getWorldPosition(neptunePosition);
+                
+                const cameraPosition = new THREE.Vector3(
+                    neptunePosition.x + 8,
+                    neptunePosition.y + 4,
+                    neptunePosition.z + 8
+                );
+                
+                animateCameraToTarget(cameraPosition, neptunePosition);
+            }
+        },
+        'Go to Pluto': () => {
+            const plutoMesh = planetSystem.planetMeshes.get('Pluto');
+            if (plutoMesh) {
+                const plutoPosition = new THREE.Vector3();
+                plutoMesh.getWorldPosition(plutoPosition);
+                
+                // Position camera to see Pluto well
+                const cameraPosition = new THREE.Vector3(
+                    plutoPosition.x + 10,
+                    plutoPosition.y + 5,
+                    plutoPosition.z + 10
+                );
+                
+                animateCameraToTarget(cameraPosition, plutoPosition);
+            }
+        },
+        'Full Solar System View': () => {
+            // Position camera to see the entire solar system
+            const cameraPosition = new THREE.Vector3(0, 50, 150);
+            const centerPosition = new THREE.Vector3(0, 0, 0);
+            animateCameraToTarget(cameraPosition, centerPosition);
+        }
+    };
+
+    quickNavFolder.add(navigationControls, 'Go to Sun');
+    quickNavFolder.add(navigationControls, 'Go to Mercury');
+    quickNavFolder.add(navigationControls, 'Go to Venus');
+    quickNavFolder.add(navigationControls, 'Go to Earth');
+    quickNavFolder.add(navigationControls, 'Go to Earth\'s Moon');
+    quickNavFolder.add(navigationControls, 'Go to Mars');
+    quickNavFolder.add(navigationControls, 'Go to Jupiter');
+    quickNavFolder.add(navigationControls, 'Go to Saturn');
+    quickNavFolder.add(navigationControls, 'Go to Uranus');
+    quickNavFolder.add(navigationControls, 'Go to Neptune');
+    quickNavFolder.add(navigationControls, 'Go to Pluto');
+    quickNavFolder.add(navigationControls, 'Full Solar System View');
 }

@@ -11,6 +11,7 @@ import saturnRingTexture from './assets/textures/SaturnsRing.png';
 import uranusTexture from './assets/textures/Uranus.jpg';
 import neptuneTexture from './assets/textures/Neptune.jpg';
 import earthMoonTexture from './assets/textures/Moon.jpg';
+import plutoTexture from './assets/textures/Pluto.jpg';
 
 const planetsData = [
     {
@@ -111,6 +112,17 @@ const planetsData = [
         orbitSpeed: 0.004,
         rotationSpeed: 0.016,
         axialTilt: 28.3 * Math.PI / 180
+    },
+    {
+        name: 'Pluto',
+        size: 0.25,
+        color: 0xaaaaaa,
+        texture: plutoTexture,
+        position: { x: 115, y: 0, z: 0 },
+        orbitRadius: 115,
+        orbitSpeed: 0.003,
+        rotationSpeed: 0.006,
+        axialTilt: 122.5 * Math.PI / 180
     }
 ];
 
@@ -602,6 +614,132 @@ export class PlanetSystem {
                 child.visible = !child.visible;
             }
         });
+    }
+
+    /**
+     * Toggles the visibility of a specific planet and its orbital line.
+     * @param {string} planetName - The name of the planet to toggle.
+     */
+    togglePlanet(planetName) {
+        // Toggle the planet group
+        const planetGroup = this.planetsGroup.getObjectByName(`${planetName}Group`);
+        if (planetGroup) {
+            planetGroup.visible = !planetGroup.visible;
+        }
+
+        // Toggle the orbital line for this specific planet (except Sun which has no orbit)
+        if (planetName !== 'Sun') {
+            this.planetsGroup.traverse((child) => {
+                if (child.name && child.name === `${planetName}Orbit`) {
+                    child.visible = !child.visible;
+                }
+            });
+        }
+    }
+
+    /**
+     * Gets the visibility state of a specific planet.
+     * @param {string} planetName - The name of the planet.
+     * @returns {boolean} Whether the planet is visible.
+     */
+    isPlanetVisible(planetName) {
+        const planetGroup = this.planetsGroup.getObjectByName(`${planetName}Group`);
+        return planetGroup ? planetGroup.visible : false;
+    }
+
+    /**
+     * Toggles Earth between spherical and flat (disc) shape.
+     * @param {boolean} makeFlat - Whether to make Earth flat or spherical.
+     */
+    toggleEarthShape(makeFlat) {
+        const earthMesh = this.planetMeshes.get('Earth');
+        if (!earthMesh) return;
+
+        if (makeFlat) {
+            // Create a flat disc for Earth
+            const earthPlanet = this.planets.find(p => p.name === 'Earth');
+            if (earthPlanet) {
+                // Remove the current Earth mesh from its parent
+                const earthGroup = earthMesh.parent;
+                if (earthGroup) {
+                    earthGroup.remove(earthMesh);
+                    
+                    // Create flat disc geometry
+                    const discGeometry = new THREE.CylinderGeometry(earthPlanet.size, earthPlanet.size, 0.1, 32);
+                    const earthTextureMap = this.textureLoader.load(earthPlanet.texture);
+                    const discMaterial = new THREE.MeshPhongMaterial({ map: earthTextureMap });
+                    
+                    const flatEarth = new THREE.Mesh(discGeometry, discMaterial);
+                    flatEarth.name = 'Earth';
+                    // No rotation needed - cylinder is already oriented correctly for horizontal disc
+                    
+                    // Handle clouds for flat Earth
+                    const cloudsGeometry = new THREE.CylinderGeometry(earthPlanet.size * 1.02, earthPlanet.size * 1.02, 0.12, 32);
+                    const cloudsTextureMap = this.textureLoader.load(earthCloudsTexture);
+                    const cloudsMaterial = new THREE.MeshPhongMaterial({
+                        map: cloudsTextureMap,
+                        transparent: true,
+                        opacity: 0.6,
+                        depthWrite: false
+                    });
+                    
+                    const flatClouds = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+                    flatClouds.name = 'EarthClouds';
+                    // No rotation needed for clouds either
+                    flatClouds.position.y = 0.01; // Slightly above the surface
+                    
+                    // Create new group for flat Earth
+                    const flatEarthGroup = new THREE.Group();
+                    flatEarthGroup.add(flatEarth);
+                    flatEarthGroup.add(flatClouds);
+                    flatEarthGroup.position.copy(earthMesh.position);
+                    flatEarthGroup.name = 'EarthWithClouds';
+                    
+                    earthGroup.add(flatEarthGroup);
+                    this.planetMeshes.set('Earth', flatEarthGroup);
+                }
+            }
+        } else {
+            // Restore spherical Earth
+            const earthPlanet = this.planets.find(p => p.name === 'Earth');
+            if (earthPlanet) {
+                const earthGroup = earthMesh.parent;
+                if (earthGroup) {
+                    earthGroup.remove(earthMesh);
+                    
+                    // Recreate spherical Earth (same as original creation logic)
+                    const geometry = new THREE.SphereGeometry(earthPlanet.size, 32, 32);
+                    const earthTextureMap = this.textureLoader.load(earthPlanet.texture);
+                    const material = new THREE.MeshPhongMaterial({ map: earthTextureMap });
+                    
+                    const sphericalEarth = new THREE.Mesh(geometry, material);
+                    sphericalEarth.name = 'Earth';
+                    sphericalEarth.rotation.z = earthPlanet.axialTilt;
+                    
+                    const cloudsGeometry = new THREE.SphereGeometry(earthPlanet.size * 1.02, 32, 32);
+                    const cloudsTextureMap = this.textureLoader.load(earthCloudsTexture);
+                    const cloudsMaterial = new THREE.MeshPhongMaterial({
+                        map: cloudsTextureMap,
+                        transparent: true,
+                        opacity: 0.6,
+                        depthWrite: false
+                    });
+                    
+                    const sphericalClouds = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+                    sphericalClouds.name = 'EarthClouds';
+                    sphericalClouds.rotation.z = earthPlanet.axialTilt;
+                    
+                    const sphericalEarthGroup = new THREE.Group();
+                    sphericalEarthGroup.position.copy(earthMesh.position);
+                    sphericalEarthGroup.add(sphericalEarth);
+                    sphericalEarthGroup.add(sphericalClouds);
+                    sphericalEarthGroup.name = 'EarthWithClouds';
+                    
+                    earthGroup.add(sphericalEarthGroup);
+                    this.planetMeshes.set('Earth', sphericalEarthGroup);
+                }
+            }
+        }
     }
 
     /**
