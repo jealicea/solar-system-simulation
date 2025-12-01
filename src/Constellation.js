@@ -1,6 +1,205 @@
 // src/Constellation.js
 import * as THREE from 'three';
 
+// Constellation information data for information panels
+const constellationInfo = {
+    'Aries': {
+        name: 'Aries',
+        type: 'Zodiac Constellation',
+        description: 'Aries represents the ram with the golden fleece from Greek mythology. It\'s a relatively small constellation in the northern sky.',
+        brightest_star: 'Hamal (α Arietis)',
+        best_viewing: 'November - February',
+        mythological_significance: 'The Golden Ram',
+        facts: [
+            'Contains the March equinox point',
+            'Home to several meteor showers',
+            'Contains the first star catalog by Hipparchus'
+        ]
+    },
+    'Taurus': {
+        name: 'Taurus',
+        type: 'Zodiac Constellation',
+        description: 'Taurus the Bull contains two of the nearest open star clusters to Earth: the Pleiades and Hyades.',
+        brightest_star: 'Aldebaran (α Tauri)',
+        best_viewing: 'December - March',
+        mythological_significance: 'Zeus transformed into a bull',
+        facts: [
+            'Contains the famous Pleiades star cluster',
+            'Aldebaran appears near Hyades but isn\'t part of it',
+            'Home to the Crab Nebula (M1)'
+        ]
+    },
+    'Gemini': {
+        name: 'Gemini',
+        type: 'Zodiac Constellation',
+        description: 'Gemini represents the twins Castor and Pollux from Greek mythology.',
+        brightest_star: 'Pollux (β Geminorum)',
+        best_viewing: 'January - April',
+        mythological_significance: 'The Twins',
+        facts: [
+            'Castor is actually a complex six-star system',
+            'Pollux is an orange giant star',
+            'Contains the open cluster M35'
+        ]
+    },
+    'Cancer': {
+        name: 'Cancer',
+        type: 'Zodiac Constellation',
+        description: 'Cancer is the faintest of the zodiac constellations, representing the crab.',
+        brightest_star: 'Altarf (β Cancri)',
+        best_viewing: 'February - May',
+        mythological_significance: 'The Crab sent by Hera',
+        facts: [
+            'Contains the Beehive Cluster (M44)',
+            'Faintest constellation of the zodiac',
+            'Contains the ancient star cluster Praesepe'
+        ]
+    },
+    'Leo': {
+        name: 'Leo',
+        type: 'Zodiac Constellation',
+        description: 'Leo the Lion is one of the most recognizable constellations, featuring a distinctive sickle shape.',
+        brightest_star: 'Regulus (α Leonis)',
+        best_viewing: 'March - June',
+        mythological_significance: 'The Nemean Lion',
+        facts: [
+            'Regulus is one of the four "Royal Stars"',
+            'Contains the Leo Triplet galaxy group',
+            'Source of the annual Leonid meteor shower'
+        ]
+    },
+    'Virgo': {
+        name: 'Virgo',
+        type: 'Zodiac Constellation',
+        description: 'Virgo is the second largest constellation and contains the bright star Spica.',
+        brightest_star: 'Spica (α Virginis)',
+        best_viewing: 'April - July',
+        mythological_significance: 'The Maiden, often associated with harvest',
+        facts: [
+            'Contains over 1,300 galaxies',
+            'Home to the Virgo Cluster',
+            'Spica is a binary star system'
+        ]
+    },
+    'Libra': {
+        name: 'Libra',
+        type: 'Zodiac Constellation',
+        description: 'Libra represents the scales of justice and is the only zodiac constellation representing an inanimate object.',
+        brightest_star: 'Zubeneschamali (β Librae)',
+        best_viewing: 'May - August',
+        mythological_significance: 'The Scales of Justice',
+        facts: [
+            'Only zodiac constellation representing an object',
+            'Originally part of Scorpius',
+            'Contains the star system Gliese 581'
+        ]
+    },
+    'Scorpio': {
+        name: 'Scorpio',
+        type: 'Zodiac Constellation',
+        description: 'Scorpius is one of the few constellations that resembles its namesake, featuring the red supergiant Antares.',
+        brightest_star: 'Antares (α Scorpii)',
+        best_viewing: 'June - September',
+        mythological_significance: 'The Scorpion that killed Orion',
+        facts: [
+            'Antares is a red supergiant 700 times larger than the Sun',
+            'Contains numerous star clusters and nebulae',
+            'Lies in the direction of the galactic center'
+        ]
+    },
+    'Sagittarius': {
+        name: 'Sagittarius',
+        type: 'Zodiac Constellation',
+        description: 'Sagittarius the Archer points toward the center of our galaxy and contains many star clusters.',
+        brightest_star: 'Kaus Australis (ε Sagittarii)',
+        best_viewing: 'July - October',
+        mythological_significance: 'The Centaur Archer',
+        facts: [
+            'Points toward the galactic center',
+            'Contains the Sagittarius A* black hole direction',
+            'Rich in star clusters and nebulae'
+        ]
+    },
+    'Capricorn': {
+        name: 'Capricorn',
+        type: 'Zodiac Constellation',
+        description: 'Capricornus represents the sea-goat and is one of the faintest zodiac constellations.',
+        brightest_star: 'Deneb Algedi (δ Capricorni)',
+        best_viewing: 'August - November',
+        mythological_significance: 'The Sea-Goat',
+        facts: [
+            'Second faintest zodiac constellation',
+            'Contains the globular cluster M30',
+            'Ancient symbol of the winter solstice'
+        ]
+    },
+    'Aquarius': {
+        name: 'Aquarius',
+        type: 'Zodiac Constellation',
+        description: 'Aquarius the Water-Bearer is associated with the rainy season in many cultures.',
+        brightest_star: 'Sadalsuud (β Aquarii)',
+        best_viewing: 'September - December',
+        mythological_significance: 'The Water-Bearer',
+        facts: [
+            'Contains three planetary nebulae',
+            'Source of several meteor showers',
+            'Contains the radiant of the Eta Aquarid meteors'
+        ]
+    },
+    'Pisces': {
+        name: 'Pisces',
+        type: 'Zodiac Constellation',
+        description: 'Pisces represents two fish swimming in opposite directions, connected by a cord.',
+        brightest_star: 'Alrisha (α Piscium)',
+        best_viewing: 'October - January',
+        mythological_significance: 'The Two Fish',
+        facts: [
+            'Contains the vernal equinox point',
+            'Largest zodiac constellation by area',
+            'Home to the galaxy M74'
+        ]
+    },
+    'Ursa Major (Big Dipper)': {
+        name: 'Ursa Major',
+        type: 'Circumpolar Constellation',
+        description: 'The Great Bear contains the famous Big Dipper asterism and is visible year-round from northern latitudes.',
+        brightest_star: 'Alioth (ε Ursae Majoris)',
+        best_viewing: 'Visible year-round (Northern Hemisphere)',
+        mythological_significance: 'The Great Bear',
+        facts: [
+            'Third largest constellation',
+            'Contains the double star Mizar and Alcor',
+            'Most stars share common proper motion'
+        ]
+    },
+    'Ursa Minor (Little Dipper)': {
+        name: 'Ursa Minor',
+        type: 'Circumpolar Constellation',
+        description: 'The Little Bear contains Polaris, the North Star, making it invaluable for navigation.',
+        brightest_star: 'Polaris (α Ursae Minoris)',
+        best_viewing: 'Visible year-round (Northern Hemisphere)',
+        mythological_significance: 'The Little Bear',
+        facts: [
+            'Contains the North Star (Polaris)',
+            'Essential for celestial navigation',
+            'Polaris will not always be the pole star'
+        ]
+    },
+    'Orion': {
+        name: 'Orion',
+        type: 'Prominent Constellation',
+        description: 'Orion the Hunter is one of the most recognizable constellations, featuring bright stars and the famous Orion Nebula.',
+        brightest_star: 'Rigel (β Orionis)',
+        best_viewing: 'November - February',
+        mythological_significance: 'The Great Hunter',
+        facts: [
+            'Contains the Orion Nebula (M42)',
+            'Betelgeuse is a red supergiant that may go supernova',
+            'Features the distinctive three-star belt'
+        ]
+    }
+};
+
 // 12 Zodiac Constellations with astronomically accurate positions on celestial sphere
 // Positions are calculated using right ascension and declination converted to 3D coordinates
 const CELESTIAL_RADIUS = 300; // Distance from center for all constellations
@@ -605,6 +804,23 @@ export class Constellation {
      */
     getConstellationColliders() {
         return Array.from(this.constellationColliders.values());
+    }
+
+    /**
+     * Gets constellation information by name.
+     * @param {string} constellationName - The name of the constellation.
+     * @returns {Object|null} The constellation information or null if not found.
+     */
+    getConstellationInfo(constellationName) {
+        return constellationInfo[constellationName] || null;
+    }
+
+    /**
+     * Gets all constellation names that have information available.
+     * @returns {Array<string>} Array of constellation names.
+     */
+    getAllConstellationNames() {
+        return Object.keys(constellationInfo);
     }
 
     /**

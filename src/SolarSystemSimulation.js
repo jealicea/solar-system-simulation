@@ -347,6 +347,47 @@ function showPlanetInfo(planetName) {
 }
 
 /**
+ * Shows constellation information in the info panel.
+ * @param {string} constellationName - The name of the constellation to show info for.
+ */
+function showConstellationInfo(constellationName) {
+    const constellationInfo = constellationSystem.getConstellationInfo(constellationName);
+    if (!constellationInfo) return;
+
+    const infoPanel = document.getElementById('planet-info');
+    const infoContent = document.getElementById('planet-info-content');
+    
+    infoContent.innerHTML = `
+        <h2>${constellationInfo.name}</h2>
+        <div class="planet-type">${constellationInfo.type}</div>
+        
+        <h3>Description</h3>
+        <p>${constellationInfo.description}</p>
+        
+        <h3>Properties</h3>
+        <div class="info-row">
+            <span class="info-label">Brightest Star:</span>
+            <span class="info-value">${constellationInfo.brightest_star}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Best Viewing:</span>
+            <span class="info-value">${constellationInfo.best_viewing}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Mythology:</span>
+            <span class="info-value">${constellationInfo.mythological_significance}</span>
+        </div>
+        
+        <h3>Interesting Facts</h3>
+        <ul class="facts-list">
+            ${constellationInfo.facts.map(fact => `<li>${fact}</li>`).join('')}
+        </ul>
+    `;
+    
+    infoPanel.style.display = 'block';
+}
+
+/**
  * Closes the planet information panel.
  */
 function closePlanetInfo() {
@@ -425,6 +466,7 @@ function onMouseDoubleClick(event) {
         
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
+            showConstellationInfo(constellationName);
             focusCameraOnConstellation(constellationName);
         }
         return;
@@ -442,6 +484,7 @@ function onMouseDoubleClick(event) {
         
         if (constellationName && constellationSystem) {
             constellationSystem.toggleConstellationFocus(constellationName);
+            showConstellationInfo(constellationName);
             focusCameraOnConstellation(constellationName);
         }
     }
